@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { TailwindProvider } from 'tailwind-rn';
 import utilities from './tailwind.json';
 import Menu from '../components/Menu';
+import Toast from 'react-native-toast-message';
 
 const Stack = createStackNavigator();
 
@@ -18,6 +19,7 @@ export default function App() {
             options={{ headerShown: false }} 
           />
         </Stack.Navigator>
+        <Toast />
       </SafeAreaProvider>
     </TailwindProvider>
   );
