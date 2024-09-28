@@ -2,7 +2,6 @@ import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
 import { Canvas, Path as SkiaPath, Skia, useTouchHandler } from "@shopify/react-native-skia";
 import Toast from 'react-native-toast-message';
-import axios from 'axios';
 import tw from 'twrnc';
 import { captureRef } from 'react-native-view-shot';
 
@@ -29,12 +28,18 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isVisible, onClose, s
         quality: 1.0,
       });
 
-      const response = await axios.post('http://your-flask-api-url/upload', {
-        sketch: base64Image,
-        subjectId: subjectId
+      const response = await fetch('http://10.108.164.65:5000/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sketch: base64Image,
+          subjectId: subjectId
+        })
       });
 
-      if (response.status === 200) {
+      if (response.ok) {
         Toast.show({
           type: 'success',
           text1: 'Sketch Uploaded',
@@ -44,6 +49,8 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isVisible, onClose, s
         onClose();
         setPaths([]);
         onNoteCreated();
+      } else {
+        throw new Error('Network response was not ok');
       }
     } catch (error) {
       console.error('Error uploading sketch:', error);
