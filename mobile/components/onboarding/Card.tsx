@@ -107,32 +107,19 @@ export default function Card() {
     return groups;
   }, {} as Record<string, selectable[]>);
 
-  const toggleItemActive = (itemValue: string) => {
+  const toggleItemActive = (value: string) => {
     setItems((prevItems) =>
       prevItems.map((item) =>
-        item.value === itemValue ? { ...item, active: !item.active } : item
+        item.value === value ? { ...item, active: !item.active } : item
       )
     );
-
-    setSelectedItems((prevSelected) => {
-      const item = items.find((i) => i.value === itemValue);
-      if (!item) return prevSelected;
-
-      if (item.active) {
-        // Item was active, so we need to remove it from selected items
-        return prevSelected.filter((i) => i.value !== itemValue);
-      } else {
-        // Item was inactive, so we need to add it to selected items
-        return [...prevSelected, { ...item, active: true }];
-      }
-    });
   };
 
-  const addItem = (item: selectable) => {
-    setItems([...items, item]);
+  const addItem = (newItem: selectable) => {
+    setItems((prevItems) => [...prevItems, newItem]);
   };
 
-  console.log(selectedItems);
+
   return (
     <View style={styles.container}>
       <AnimatedBackground />
@@ -173,6 +160,7 @@ export default function Card() {
   );
 }
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -182,9 +170,9 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   card: {
-    width: '90%',
-    maxWidth: 400,
-    aspectRatio: 6/5,
+    width: '80%',
+    maxHeight: '90%',
+    aspectRatio: 5/6,
     backgroundColor: 'rgba(0,0,0,0.7)',
     borderRadius: 20,
     padding: 20,
@@ -215,8 +203,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     paddingVertical: 8,
-    backgroundColor: 'rgba(128, 128, 128, 0.6)',
-    borderRadius: 8,
   },
   subjectTitle: {
     fontSize: 20,
