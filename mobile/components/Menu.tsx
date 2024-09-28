@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, FlatList, Modal, ActivityIndicator, ScrollView } from 'react-native';
-import { Canvas, Path as SkiaPath, Skia, useTouchHandler } from "@shopify/react-native-skia";
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, FlatList, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import axios from 'axios';
 import tw from 'twrnc';
+import CreateNoteModal from './CreateNoteModal';
+import { useNavigation } from '@react-navigation/native'; // Ensure this import is present
 
 interface Subject {
   id: string;
@@ -19,23 +19,14 @@ interface Note {
   content: string;
 }
 
-interface SketchPath {
-  path: Skia.Path;
-  color: string;
-  strokeWidth: number;
-}
-
 const Menu: React.FC = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSketchModalVisible, setIsSketchModalVisible] = useState<boolean>(false);
-  const [paths, setPaths] = useState<SketchPath[]>([]);
-  const [color, setColor] = useState<string>('#000000');
-  const [strokeWidth, setStrokeWidth] = useState<number>(5);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation(); // Ensure this line is present
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -45,7 +36,6 @@ const Menu: React.FC = () => {
   const fetchSubjectsAndNotes = async () => {
     setIsLoading(true);
     try {
-      // Replace with your actual API endpoint
       const response = await axios.get('http://your-flask-api-url/subjects');
       setSubjects(response.data.subjects);
       setNotes(response.data.notes);
@@ -71,80 +61,9 @@ const Menu: React.FC = () => {
     setIsSketchModalVisible(true);
   };
 
-  const handleSubmitSketch = async () => {
-    setIsLoading(true);
-    try {
-      const sketchData = JSON.stringify(paths);
-
-      // Replace with your actual API endpoint
-      const response = await axios.post('http://your-flask-api-url/upload', {
-        sketch: sketchData,
-        subjectId: selectedSubject?.id
-      });
-
-      if (response.status === 200) {
-        Toast.show({
-          type: 'success',
-          text1: 'Sketch Uploaded',
-          text2: 'Your sketch has been saved successfully.',
-        });
-
-        setIsSketchModalVisible(false);
-        setPaths([]);
-
-        fetchSubjectsAndNotes();
-      }
-    } catch (error) {
-      console.error('Error uploading sketch:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Upload Failed',
-        text2: 'There was an error saving your sketch.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleNoteCreated = () => {
+    fetchSubjectsAndNotes();
   };
-
-  const onDrawingStart = useCallback(
-    (touchInfo: any) => {
-      setPaths((currentPaths) => {
-        const { x, y } = touchInfo;
-        const newPath = Skia.Path.Make();
-        newPath.moveTo(x, y);
-        return [
-          ...currentPaths,
-          {
-            path: newPath,
-            color,
-            strokeWidth,
-          },
-        ];
-      });
-    },
-    [color, strokeWidth]
-  );
-
-  const onDrawingActive = useCallback((touchInfo: any) => {
-    setPaths((currentPaths) => {
-      const { x, y } = touchInfo;
-      const currentPath = currentPaths[currentPaths.length - 1];
-      const lastPoint = currentPath.path.getLastPt();
-      const xMid = (lastPoint.x + x) / 2;
-      const yMid = (lastPoint.y + y) / 2;
-
-      currentPath.path.quadTo(lastPoint.x, lastPoint.y, xMid, yMid);
-      return [...currentPaths.slice(0, currentPaths.length - 1), currentPath];
-    });
-  }, []);
-
-  const touchHandler = useTouchHandler(
-    {
-      onActive: onDrawingActive,
-      onStart: onDrawingStart,
-    },
-    [onDrawingActive, onDrawingStart]
-  );
 
   const renderSubjectItem = ({ item }: { item: Subject }) => (
     <TouchableOpacity
@@ -211,38 +130,12 @@ const Menu: React.FC = () => {
         <AntDesign name="plus" size={24} color="white" />
       </TouchableOpacity>
 
-      <Modal visible={isSketchModalVisible} animationType="slide">
-        <View style={tw`flex-1 bg-gray-100`}>
-          <View style={tw`px-4 py-6 bg-indigo-600`}>
-            <Text style={tw`text-2xl font-bold text-white`}>Create New Note</Text>
-          </View>
-          <Canvas style={tw`flex-1 bg-white`} onTouch={touchHandler}>
-            {paths.map((path, index) => (
-              <SkiaPath
-                key={index}
-                path={path.path}
-                color={path.color}
-                style="stroke"
-                strokeWidth={path.strokeWidth}
-              />
-            ))}
-          </Canvas>
-          <View style={tw`flex-row justify-between px-4 py-4 bg-gray-200`}>
-            <TouchableOpacity
-              style={tw`bg-red-500 px-6 py-3 rounded-lg`}
-              onPress={() => setIsSketchModalVisible(false)}
-            >
-              <Text style={tw`text-white font-semibold`}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={tw`bg-green-500 px-6 py-3 rounded-lg`}
-              onPress={handleSubmitSketch}
-            >
-              <Text style={tw`text-white font-semibold`}>Save Note</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      <CreateNoteModal
+        isVisible={isSketchModalVisible}
+        onClose={() => setIsSketchModalVisible(false)}
+        subjectId={selectedSubject?.id || null}
+        onNoteCreated={handleNoteCreated}
+      />
 
       {isLoading && (
         <View style={tw`absolute inset-0 bg-black bg-opacity-50 justify-center items-center`}>
