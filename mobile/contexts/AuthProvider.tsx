@@ -24,10 +24,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isLoading) return;
 
-    if (!user) {
+    const group = segments[0];
+    console.log("Current group:", group);
+    console.log("User state:", user);
+
+    if (!user && group === '(pages)') {
+      console.log("GOING TO LOGIN");
       router.replace('/(auth)/login');
-    } else {
+    } else if (user && group === '(auth)') {
+      console.log("GOING TO HOME");
       router.replace('/(pages)/home');
+    } else if (group === undefined && !user) {
+      router.replace('/(auth)/login');
+    } else if (group === undefined && user) {
+      router.replace('/(pages)/home')
     }
   }, [user, segments, isLoading]);
 
