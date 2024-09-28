@@ -3,14 +3,14 @@ Backend API Endpoints
 /api/upload
 body
 {
-"userId" : string
+"userId" : string,
 "image" : 64 encoded png
 }
 
 /api/query
 body
 {
-"text" : string
+"text" : string,
 "userId" : string
 }
 
@@ -23,7 +23,7 @@ body
 /api/add classes
 body
 {
-"userId" : string
+"userId" : string,
 "classes" : [string ... ]
 }
 
