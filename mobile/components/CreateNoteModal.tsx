@@ -18,6 +18,7 @@ interface CreateNoteModalProps {
   onClose: () => void;
   subjectId: string | null;
   onNoteCreated: () => void;
+  userId: string | undefined; // Add userId to props
 }
 
 interface SketchPath {
@@ -54,6 +55,7 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
   onClose,
   subjectId,
   onNoteCreated,
+  userId, // Destructure userId from props
 }) => {
   const [paths, setPaths] = useState<SketchPath[]>([]);
   const [redoPaths, setRedoPaths] = useState<SketchPath[]>([]);
@@ -69,16 +71,17 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
       const base64Image = await captureRef(canvasRef, {
         format: 'png',
         quality: 1.0,
+        result: 'base64', // Ensure it's returning base64
       });
 
-      const response = await fetch('http://10.108.74.57:5000/upload', {
+      const response = await fetch('http://10.108.74.57:5000/api/upload', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          sketch: base64Image,
-          subjectId,
+          image: base64Image, // Sending Base64 image
+          userId, // Use userId here
         }),
       });
 

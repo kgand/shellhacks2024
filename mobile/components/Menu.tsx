@@ -34,6 +34,7 @@ const Menu: React.FC = () => {
 
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const userId = auth.currentUser?.uid; // Get the userId
 
   useEffect(() => {
     fetchSubjectsAndNotes();
@@ -49,7 +50,7 @@ const Menu: React.FC = () => {
   const fetchSubjectsAndNotes = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get('http://your-flask-api-url/subjects');
+      const response = await axios.get('http://10.108.74.57:5000/api/get_subjects');
       setSubjects(response.data.subjects);
       setNotes(response.data.notes);
     } catch (error) {
@@ -87,7 +88,7 @@ const Menu: React.FC = () => {
     if (searchQuery.trim() === '') return;
     setIsSearching(true);
     try {
-      const response = await axios.post('http://your-flask-api-url/search', { query: searchQuery });
+      const response = await axios.post('http://10.108.74.57:5000/api/query', { query: searchQuery });
       setNotes(response.data.notes);
       setFilteredSubjects(response.data.subjects);
     } catch (error) {
@@ -197,7 +198,7 @@ const Menu: React.FC = () => {
         style={tw`absolute bottom-10 right-10 bg-indigo-600 p-4 rounded-full shadow-lg`}
         onPress={handleCreateNewNote}
       >
-        <AntDesign name="plus" size={40} color="white" />
+        <AntDesign name="plus" size={28} color="white" />
       </TouchableOpacity>
 
       <CreateNoteModal
@@ -205,6 +206,7 @@ const Menu: React.FC = () => {
         onClose={() => setIsSketchModalVisible(false)}
         subjectId={selectedSubject?.id || null}
         onNoteCreated={handleNoteCreated}
+        userId={userId} // Pass userId as a prop
       />
 
       {isLoading && (
