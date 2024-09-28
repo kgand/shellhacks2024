@@ -1,11 +1,9 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ActivityIndicator, TextInput } from 'react-native';
 import { Canvas, Path as SkiaPath, Skia, useTouchHandler } from "@shopify/react-native-skia";
 import Toast from 'react-native-toast-message';
 import tw from 'twrnc';
 import { captureRef } from 'react-native-view-shot';
-import { toByteArray } from 'base64-js';
-import { useImage } from '@shopify/react-native-skia';
 
 interface CreateNoteModalProps {
   isVisible: boolean;
@@ -19,6 +17,10 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isVisible, onClose, s
   const [color, setColor] = useState<string>('#000000');
   const [strokeWidth, setStrokeWidth] = useState<number>(5);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [mode, setMode] = useState<'draw' | 'text'>('draw');
+  const [text, setText] = useState<string>('');
+  const [history, setHistory] = useState<SketchPath[][]>([]);
+  const [redoStack, setRedoStack] = useState<SketchPath[][]>([]);
 
   const canvasRef = useRef(null);
 
@@ -28,11 +30,11 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isVisible, onClose, s
       const base64Image = await captureRef(canvasRef, {
         format: 'png',
         quality: 1.0,
-        result: 'base64' // Ensure the result is in base64 format
+        result: 'base64'
       });
 
       const requestBody = JSON.stringify({
-        sketch: base64Image
+        image: base64Image
       });
 
       const requestUrl = 'http://10.108.164.65:5000/upload';
@@ -89,8 +91,10 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isVisible, onClose, s
           },
         ];
       });
+      setHistory((prevHistory) => [...prevHistory, paths]);
+      setRedoStack([]);
     },
-    [color, strokeWidth]
+    [color, strokeWidth, paths]
   );
 
   const onDrawingActive = useCallback((touchInfo: any) => {
@@ -114,23 +118,75 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isVisible, onClose, s
     [onDrawingActive, onDrawingStart]
   );
 
+  const handleUndo = () => {
+    if (paths.length > 0) {
+      setRedoStack((prevRedoStack) => [...prevRedoStack, paths]);
+      setPaths(history[history.length - 1] || []);
+      setHistory((prevHistory) => prevHistory.slice(0, -1));
+    }
+  };
+
+  const handleRedo = () => {
+    if (redoStack.length > 0) {
+      setHistory((prevHistory) => [...prevHistory, paths]);
+      setPaths(redoStack[redoStack.length - 1]);
+      setRedoStack((prevRedoStack) => prevRedoStack.slice(0, -1));
+    }
+  };
+
   return (
     <Modal visible={isVisible} animationType="slide">
       <View style={tw`flex-1 bg-gray-100`}>
         <View style={tw`px-4 py-6 bg-indigo-600`}>
           <Text style={tw`text-2xl font-bold text-white`}>Create New Note</Text>
         </View>
-        <Canvas ref={canvasRef} style={tw`flex-1 bg-white`} onTouch={touchHandler}>
-          {paths.map((path, index) => (
-            <SkiaPath
-              key={index}
-              path={path.path}
-              color={path.color}
-              style="stroke"
-              strokeWidth={path.strokeWidth}
-            />
-          ))}
-        </Canvas>
+        <View style={tw`flex-row justify-between px-4 py-4 bg-gray-200`}>
+          <TouchableOpacity
+            style={tw`bg-blue-500 px-6 py-3 rounded-lg`}
+            onPress={() => setMode('draw')}
+          >
+            <Text style={tw`text-white font-semibold`}>Draw</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={tw`bg-blue-500 px-6 py-3 rounded-lg`}
+            onPress={() => setMode('text')}
+          >
+            <Text style={tw`text-white font-semibold`}>Text</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={tw`bg-yellow-500 px-6 py-3 rounded-lg`}
+            onPress={handleUndo}
+          >
+            <Text style={tw`text-white font-semibold`}>Undo</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={tw`bg-yellow-500 px-6 py-3 rounded-lg`}
+            onPress={handleRedo}
+          >
+            <Text style={tw`text-white font-semibold`}>Redo</Text>
+          </TouchableOpacity>
+        </View>
+        {mode === 'text' ? (
+          <TextInput
+            style={tw`flex-1 bg-white p-4`}
+            multiline
+            value={text}
+            onChangeText={setText}
+            placeholder="Type your note here..."
+          />
+        ) : (
+          <Canvas ref={canvasRef} style={tw`flex-1 bg-white`} onTouch={touchHandler}>
+            {paths.map((path, index) => (
+              <SkiaPath
+                key={index}
+                path={path.path}
+                color={path.color}
+                style="stroke"
+                strokeWidth={path.strokeWidth}
+              />
+            ))}
+          </Canvas>
+        )}
         <View style={tw`flex-row justify-between px-4 py-4 bg-gray-200`}>
           <TouchableOpacity
             style={tw`bg-red-500 px-6 py-3 rounded-lg`}
