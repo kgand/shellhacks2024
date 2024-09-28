@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  StyleSheet,
 } from "react-native";
 import Selector from "./Selector";
 import AddModal from "./Modal";
+import AnimatedBackground from "../AnimatedBackground";
 
 export interface selectable {
   value: string;
@@ -94,41 +96,16 @@ export default function Card() {
       subject: "Computer Science",
       active: false,
     },
-    {
-      value: "Artificial Intelligence",
-      subject: "Computer Science",
-      active: false,
-    },
-    { value: "Financial Accounting", subject: "Business", active: false },
-    {
-      value: "Database Management",
-      subject: "Computer Science",
-      active: false,
-    },
-    { value: "Contemporary Dance", subject: "Art", active: false },
-    { value: "Sports Psychology", subject: "Psychology", active: false },
-    { value: "Forensic Science", subject: "Science", active: false },
-    { value: "Film Studies", subject: "Art", active: false },
-    { value: "Data Analysis", subject: "Data Science", active: false },
-    { value: "Fashion Design", subject: "Art", active: false },
-    { value: "Neuroscience", subject: "Biology", active: false },
-    { value: "Public Health", subject: "Health", active: false },
-    { value: "Veterinary Science", subject: "Health", active: false },
-    { value: "Television Production", subject: "Art", active: false },
-    { value: "Special Topics in History", subject: "History", active: false },
   ]);
 
-  const groupItemsBySubject = (items: selectable[]) => {
-    return items.reduce<Record<string, selectable[]>>((acc, item) => {
-      if (!acc[item.subject]) {
-        acc[item.subject] = [];
-      }
-      acc[item.subject].push(item);
-      return acc;
-    }, {});
-  };
-
-  const groupItems = groupItemsBySubject(items);
+  const groupItems = items.reduce((groups, item) => {
+    const { subject } = item;
+    if (!groups[subject]) {
+      groups[subject] = [];
+    }
+    groups[subject].push(item);
+    return groups;
+  }, {} as Record<string, selectable[]>);
 
   const toggleItemActive = (itemValue: string) => {
     setItems((prevItems) =>
@@ -157,42 +134,127 @@ export default function Card() {
 
   console.log(selectedItems);
   return (
-    <View className="h-[70%] w-[70%] border-neutral-700 border-[1px] rounded-2xl p-10 flex items-center flex-col">
-      <Text className="text-white font-semibold text-2xl mb-10">
-        Select your current classes
-      </Text>
-      <ScrollView className="flex-grow w-[90%] mb-10">
-        {Object.entries(groupItems).map(([subject, items]) => (
-          <View key={subject} className="mb-4">
-            <View className="w-full justify-center items-center">
-              <Text className="text-xl font-bold mb-2 text-white">
-                {subject}
-              </Text>
+    <View style={styles.container}>
+      <AnimatedBackground />
+      <View style={styles.card}>
+        <Text style={styles.title}>Select your current classes</Text>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
+          {Object.entries(groupItems).map(([subject, items]) => (
+            <View key={subject} style={styles.subjectContainer}>
+              <View style={styles.subjectHeader}>
+                <Text style={styles.subjectTitle}>{subject}</Text>
+              </View>
+              <View style={styles.itemsContainer}>
+                {items.map((item) => (
+                  <Selector
+                    key={item.value}
+                    value={item.value}
+                    isSelected={item.active}
+                    onPress={() => toggleItemActive(item.value)}
+                  />
+                ))}
+              </View>
             </View>
-            <View className="flex flex-wrap flex-row justify-center">
-              {items.map((item) => (
-                <Selector
-                  key={item.value}
-                  value={item.value}
-                  isSelected={item.active}
-                  onPress={() => toggleItemActive(item.value)}
-                />
-              ))}
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-      <TouchableOpacity onPress={() => setModalShown(true)} className="bg-blue-500 px-3 py-2 mb-5 rounded-xl">
-        <Text className="text-white">+ Add custom class</Text>
-      </TouchableOpacity>
-      <TouchableOpacity className="bg-white w-[70%] h-[8%] justify-center items-center rounded-lg">
-        <Text className="text-black font-semibold text-xl">Continue</Text>
-      </TouchableOpacity>
-      <AddModal
-        visible={modalShow}
-        onClose={() => setModalShown(false)}
-        onAdd={addItem}
-      />
+          ))}
+        </ScrollView>
+        <TouchableOpacity onPress={() => setModalShown(true)} style={styles.addButton}>
+          <Text style={styles.addButtonText}>+ Add custom class</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.continueButton}>
+          <Text style={styles.continueButtonText}>Continue</Text>
+        </TouchableOpacity>
+        <AddModal
+          visible={modalShow}
+          onClose={() => setModalShown(false)}
+          onAdd={addItem}
+        />
+      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
+  },
+  card: {
+    width: '90%',
+    maxWidth: 400,
+    aspectRatio: 6/5,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 20,
+  },
+  scrollView: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  scrollViewContent: {
+    alignItems: 'center',
+  },
+  subjectContainer: {
+    marginBottom: 15,
+    width: '100%',
+  },
+  subjectHeader: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    paddingVertical: 8,
+    backgroundColor: 'rgba(128, 128, 128, 0.6)',
+    borderRadius: 8,
+  },
+  subjectTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 8,
+  },
+  itemsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  addButton: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginBottom: 15,
+    width: '100%',
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  continueButton: {
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    width: '100%',
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  continueButtonText: {
+    color: 'black',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+});
