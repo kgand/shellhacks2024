@@ -2,8 +2,8 @@ from pymongo import MongoClient
 from datetime import datetime
 
 # Initialize MongoDB client and define the database and collection
-client = MongoClient('cluster41977.ugaq7.mongodb.net')  # Adjust the URL as needed
-db = client['mongodbVSCodePlaygroundDB']
+client = MongoClient("mongodb+srv://Cluster41977:U2hydm16dU5r@cluster41977.ugaq7.mongodb.net/test?retryWrites=true&w=majority")
+db = client['noted']
 
 def upload_note(userID: str, class_name: str, img_data: str, topics: list):
     # Reference to the specific user's document in MongoDB
@@ -17,11 +17,8 @@ def upload_note(userID: str, class_name: str, img_data: str, topics: list):
         "image": img_data,
         "created_at": datetime.now(),
         "updated_at": datetime.now(),
+        "topics": topics
     }
-
-    # Add topics to the note with an initial value
-    for topic in topics:
-        new_note[topic] = 0
 
     if user_class:
         # If the class exists, append the new note to the class's notes array
@@ -39,11 +36,21 @@ def upload_note(userID: str, class_name: str, img_data: str, topics: list):
         )
         print(f"New class created, and note uploaded for User ID: {userID}, Class: {class_name}")
 
-# Example usage
+
 if __name__ == "__main__":
-    user_id = "user123"
-    class_name = "Math101"
-    img_data = "image_data_base64_or_url"
-    topics = ["Algebra", "Geometry"]
+    # Example user ID and class name
+    user_id = "user124"
+    class_name = "Math102"
     
+    # Image data (base64 or URL, depending on how you store it)
+    img_data = "image_data_base64_or_url"
+    
+    # Example topics map with initial values
+    topics = {
+        "Algebra": 1,
+        "Geometry": 2,
+        "Calculus": 3
+    }
+
+    # Call the function to upload the note
     upload_note(user_id, class_name, img_data, topics)
