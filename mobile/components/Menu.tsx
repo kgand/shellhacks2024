@@ -36,7 +36,7 @@ const Menu: React.FC = () => {
   const fetchSubjectsAndNotes = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get('http://your-flask-api-url/subjects');
+      const response = await axios.get('http://10.108.164.65:5000/subjects');
       setSubjects(response.data.subjects);
       setNotes(response.data.notes);
     } catch (error) {

@@ -4,6 +4,8 @@ import { Canvas, Path as SkiaPath, Skia, useTouchHandler } from "@shopify/react-
 import Toast from 'react-native-toast-message';
 import tw from 'twrnc';
 import { captureRef } from 'react-native-view-shot';
+import { toByteArray } from 'base64-js';
+import { useImage } from '@shopify/react-native-skia';
 
 interface CreateNoteModalProps {
   isVisible: boolean;
@@ -26,17 +28,24 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isVisible, onClose, s
       const base64Image = await captureRef(canvasRef, {
         format: 'png',
         quality: 1.0,
+        result: 'base64' // Ensure the result is in base64 format
       });
 
-      const response = await fetch('http://10.108.164.65:5000/upload', {
+      const requestBody = JSON.stringify({
+        sketch: base64Image
+      });
+
+      const requestUrl = 'http://10.108.164.65:5000/upload';
+
+      console.log('Request URL:', requestUrl);
+      console.log('Request Body:', requestBody);
+
+      const response = await fetch(requestUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          sketch: base64Image,
-          subjectId: subjectId
-        })
+        body: requestBody
       });
 
       if (response.ok) {
@@ -50,14 +59,15 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isVisible, onClose, s
         setPaths([]);
         onNoteCreated();
       } else {
-        throw new Error('Network response was not ok');
+        const errorText = await response.text();
+        throw new Error(`Network response was not ok: ${errorText}`);
       }
     } catch (error) {
-      console.error('Error uploading sketch:', error);
+      console.error('Error uploading sketch:', error.message);
       Toast.show({
         type: 'error',
         text1: 'Upload Failed',
-        text2: 'There was an error saving your sketch.',
+        text2: `There was an error saving your sketch: ${error.message}`,
       });
     } finally {
       setIsLoading(false);
