@@ -1,50 +1,64 @@
-from flask import Flask, request, jsonify
 from pymongo import MongoClient
 from datetime import datetime
-
-app = Flask(__name__)
 
 # Initialize MongoDB client and define the database and collection
 client = MongoClient("mongodb+srv://Cluster41977:U2hydm16dU5r@cluster41977.ugaq7.mongodb.net/test?retryWrites=true&w=majority")
 db = client['noted']
 
-@app.route('/create_user', methods=['POST'])
-def create_user():
-    userID = request.json.get('userID')
-    if not userID:
-        return jsonify({"error": "userID is required"}), 400
-
+def create_user(userID: str):
+    # Reference to the users collection
     users_collection = db['users']
+
+    # Check if the userID already exists in the database
     existing_user = users_collection.find_one({"userID": userID})
 
     if existing_user:
-        return jsonify({"message": f"User ID {userID} already exists."}), 409
+        print(f"User ID {userID} already exists in the database.")
+        return False  # Return False to indicate the user already exists
+    else:
+        # Create a new user document with the provided userID
+        new_user = {
+            "userID": userID,
+            "classes": {}  # Initialize with an empty classes object
+        }
+        
+        # Insert the new user document into the database
+        users_collection.insert_one(new_user)
+        print(f"New user created with User ID: {userID}")
+        return True  # Return True to indicate the user was successfully created
 
-    new_user = {
-        "userID": userID,
-        "classes": {}
-    }
 
-    users_collection.insert_one(new_user)
-    return jsonify({"message": f"New user created with User ID: {userID}."}), 201
+def get_classes(userID: str):
+    # Reference to the users collection
+    users_collection = db['users']
 
-@app.route('/add_class', methods=['POST'])
-def add_class():
-    userID = request.json.get('userID')
-    class_name = request.json.get('class_name')
+    # Query the document for the specific userID
+    user_doc = users_collection.find_one({"userID": userID})
 
+    classes_array = []
+
+    if user_doc and "classes" in user_doc:
+        # Extract the keys from the "classes" field which represent the class names
+        classes_array = list(user_doc["classes"].keys())
+        print(f"User ID: {userID}, Classes: {classes_array}")
+    else:
+        print("No classes found for User ID:", userID)
+
+    return classes_array
+
+def add_class(userID, class_name):
     if not userID or not class_name:
-        return jsonify({"error": "userID and class_name are required"}), 400
-    
+        return {"error": "userID and class_name are required"}
+
     users_collection = db['users']
     user_doc = users_collection.find_one({"userID": userID})
 
     if not user_doc:
-        return jsonify({"error": f"User ID {userID} does not exist."}), 404
+        return {"error": f"User ID {userID} does not exist"}
 
     # Check if the class already exists
     if class_name in user_doc.get("classes", {}):
-        return jsonify({"message": f"Class {class_name} already exists for User ID: {userID}."}), 409
+        return {"message": f"Class {class_name} already exists for User ID: {userID}"}
 
     # Add the new class to the user's document
     users_collection.update_one(
@@ -52,33 +66,17 @@ def add_class():
         {"$set": {f"classes.{class_name}": {"notes": []}}}
     )
 
-    return jsonify({"message": f"Class {class_name} created for User ID: {userID}."}), 201
+    return {"message": f"Class {class_name} created for User ID: {userID}"}
 
 
-@app.route('/get_classes/<string:userID>', methods=['GET'])
-def get_classes():
-    userID = request.json.get('userID')
+def upload_note(userID: str, class_name: str, img_data: str, topics: list):
+    # Reference to the specific user's document in MongoDB
     users_collection = db['users']
-    user_doc = users_collection.find_one({"userID": userID})
 
-    if user_doc and "classes" in user_doc:
-        classes_array = list(user_doc["classes"].keys())
-        return jsonify({"userID": userID, "classes": classes_array}), 200
+    # Check if the class already exists for the user
+    user_class = users_collection.find_one({"userID": userID, f"classes.{class_name}": {"$exists": True}})
 
-    return jsonify({"message": f"No classes found for User ID: {userID}."}), 404
-
-
-@app.route('/upload', methods=['POST'])
-def upload():
-    userID = request.json.get('userID')
-    class_name = request.json.get('class_name')
-    img_data = request.json.get('img_data')
-    topics = request.json.get('topics')
-
-    if not userID or not class_name or not img_data or topics is None:
-        return jsonify({"error": "userID, class_name, img_data, and topics are required"}), 400
-
-    users_collection = db['users']
+    # Create the new note object
     new_note = {
         "image": img_data,
         "created_at": datetime.now(),
@@ -86,22 +84,57 @@ def upload():
         "topics": topics
     }
 
-    user_class = users_collection.find_one({"userID": userID, f"classes.{class_name}": {"$exists": True}})
-
     if user_class:
+        # If the class exists, append the new note to the class's notes array
         users_collection.update_one(
             {"userID": userID, f"classes.{class_name}": {"$exists": True}},
             {"$push": {f"classes.{class_name}.notes": new_note}}
         )
-        return jsonify({"message": f"Note uploaded for User ID: {userID}, Class: {class_name}."}), 200
+        print(f"Note uploaded for User ID: {userID}, Class: {class_name}")
     else:
+        # If the class doesn't exist, create the class with the new note
         users_collection.update_one(
             {"userID": userID},
             {"$set": {f"classes.{class_name}.notes": [new_note]}},
-            upsert=True
+            upsert=True  # Create the user document if it doesn't exist
         )
-        return jsonify({"message": f"New class created, and note uploaded for User ID: {userID}, Class: {class_name}."}), 201
+        print(f"New class created, and note uploaded for User ID: {userID}, Class: {class_name}")
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+
+    '''
+    #upload note testing
+    # Example user ID and class name
+    user_id = "user124"
+    class_name = "Math102"
+    
+    # Image data (base64 or URL, depending on how you store it)
+    img_data = "image_data_base64_or_url"
+    
+    # Example topics map with initial values
+    topics = {
+        "Algebra": 1,
+        "Geometry": 2,
+        "Calculus": 3
+    }
+
+    # Call the function to upload the note
+    upload_note(user_id, class_name, img_data, topics)
+    '''
+
+    '''
+    # get class testing
+    user_id = "user124"
+    
+    # Retrieve and print all classes for the user
+    classes = get_classes(user_id)
+    print(f"Classes for {user_id}: {classes}")
+    '''
+
+    # make user testing
+    user_id = "YAXH2KpWyLc1fEtr4hsv1DPkINX2"
+    class_name = "Physics 2"
+    
+    # Create the user in the database
+    add_class(user_id, class_name)
