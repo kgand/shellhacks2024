@@ -216,18 +216,18 @@ export default function AddModal({ visible, onClose, onAdd }: Props) {
               />
             </Picker>
             <View className="h-[1px] w-full bg-neutral-600 mb-4"></View>
-            <View className="flex-row justify-end space-x-4">
+            <View className="space-y-4">
               <TouchableOpacity
                 onPress={onClose}
                 className="px-6 py-3 rounded-lg bg-neutral-700"
               >
-                <Text className="text-white font-medium">Cancel</Text>
+                <Text className="text-white font-medium text-center">Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleAdd}
                 className="px-6 py-3 rounded-lg bg-blue-600"
               >
-                <Text className="text-white font-medium">Add</Text>
+                <Text className="text-white font-medium text-center">Add</Text>
               </TouchableOpacity>
             </View>
           </View>

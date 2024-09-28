@@ -2,10 +2,8 @@ interface addProps {
     userId: string,
     classes: string[]
 }
-
 export const addClasses = async ({ userId, classes }: addProps) => {
     // http://10.108.74.57:5000/api/create_user
-
     await fetch("http://10.108.74.57:5000/api/add_classes", {
         method: 'POST',
         headers: {
@@ -17,11 +15,9 @@ export const addClasses = async ({ userId, classes }: addProps) => {
         })
     });
 }
-
 interface getProps {
     userId: string
 }
-
 export const getClasses = async ({userId}: getProps) => {
     const response = await fetch("http://10.108.74.57:5000/api/get_subjects", {
         method: 'POST',
@@ -32,6 +28,5 @@ export const getClasses = async ({userId}: getProps) => {
             userId,
         })
     });
-
     return response.json();
 }

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, TextInput, Image } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, TextInput, Image, Modal } from 'react-native';
 import { Ionicons, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import axios from 'axios';
 import tw from 'twrnc';
 import CreateNoteModal from './CreateNoteModal';
-import { useNavigation } from '@react-navigation/native';
+import ARCamera from './ARCamera'; // Import ARCamera component
 import { auth } from '@/configs/firebase';
 import { appSignOut } from '@/utils/auth';
 
@@ -29,16 +28,17 @@ const Menu: React.FC = () => {
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSketchModalVisible, setIsSketchModalVisible] = useState<boolean>(false);
+  const [isCameraModalVisible, setIsCameraModalVisible] = useState<boolean>(false); // State for camera modal
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isSearching, setIsSearching] = useState<boolean>(false);
 
-  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const userId = auth.currentUser?.uid; // Get the userId
 
   useEffect(() => {
     fetchSubjectsAndNotes();
   }, []);
+
 
   useEffect(() => {
     const filtered = subjects.filter(subject =>
@@ -50,9 +50,23 @@ const Menu: React.FC = () => {
   const fetchSubjectsAndNotes = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get('http://10.108.74.57:5000/api/get_subjects');
-      setSubjects(response.data.subjects);
-      setNotes(response.data.notes);
+      const response = await fetch('http://10.108.74.57:5000/api/get_subjects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('Data:', data);
+      const classesArray = JSON.parse(data.classes.replace(/'/g, '"')); // Replace single quotes with double quotes
+      const subjectsArray = classesArray.map((className: string) => ({ id: className, name: className }));
+      setSubjects(subjectsArray); // Ensure subjects is always an array
+      setNotes(data.notes || []); // Ensure notes is always an array
+      console.log('Classes:', classesArray);
     } catch (error) {
       console.error('Error fetching data:', error);
       Toast.show({
@@ -60,10 +74,12 @@ const Menu: React.FC = () => {
         text1: 'Error',
         text2: 'Failed to load subjects and notes',
       });
+      setSubjects([]); // Ensure subjects is always an array
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const handleSubjectPress = (subject: Subject) => {
     setSelectedSubject(subject);
@@ -75,22 +91,29 @@ const Menu: React.FC = () => {
     setIsSketchModalVisible(true);
   };
 
+
   const handleNoteCreated = () => {
     fetchSubjectsAndNotes();
   };
 
   const handleSignOut = async () => {
     await appSignOut();
-    navigation.navigate('Login' as never);
   };
 
   const handleSearch = async () => {
     if (searchQuery.trim() === '') return;
     setIsSearching(true);
     try {
-      const response = await axios.post('http://10.108.74.57:5000/api/query', { query: searchQuery });
-      setNotes(response.data.notes);
-      setFilteredSubjects(response.data.subjects);
+      const response = await fetch('http://10.108.74.57:5000/api/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: searchQuery }),
+      });
+      const data = await response.json();
+      setNotes(data.notes || []); // Ensure notes is always an array
+      setFilteredSubjects(data.subjects || []); // Ensure subjects is always an array
     } catch (error) {
       console.error('Error searching:', error);
       Toast.show({
@@ -103,6 +126,10 @@ const Menu: React.FC = () => {
     }
   };
 
+  const handleOpenCamera = () => {
+    setIsCameraModalVisible(true);
+  };
+
   const renderSubjectItem = ({ item }: { item: Subject }) => (
     <TouchableOpacity
       style={tw`mb-4 p-4 bg-neutral-800 rounded-lg shadow-md flex-row items-center`}
@@ -113,12 +140,14 @@ const Menu: React.FC = () => {
     </TouchableOpacity>
   );
 
+
   const renderNoteItem = ({ item }: { item: Note }) => (
     <TouchableOpacity style={tw`mb-4 p-4 bg-neutral-700 rounded-lg shadow-md`}>
       <Text style={tw`text-base text-white mb-2`}>{item.content}</Text>
       <Text style={tw`text-xs text-neutral-400`}>{new Date(item.createdAt).toLocaleString()}</Text>
     </TouchableOpacity>
   );
+
 
   return (
     <View style={[tw`flex-1 bg-neutral-900`, { paddingTop: insets.top }]}>
@@ -201,6 +230,13 @@ const Menu: React.FC = () => {
         <AntDesign name="plus" size={28} color="white" />
       </TouchableOpacity>
 
+      <TouchableOpacity
+        style={tw`absolute bottom-10 left-10 bg-indigo-600 p-4 rounded-full shadow-lg`}
+        onPress={handleOpenCamera}
+      >
+        <Ionicons name="camera" size={28} color="white" />
+      </TouchableOpacity>
+
       <CreateNoteModal
         isVisible={isSketchModalVisible}
         onClose={() => setIsSketchModalVisible(false)}
@@ -208,6 +244,14 @@ const Menu: React.FC = () => {
         onNoteCreated={handleNoteCreated}
         userId={userId} // Pass userId as a prop
       />
+
+      <Modal
+        visible={isCameraModalVisible}
+        animationType="slide"
+        onRequestClose={() => setIsCameraModalVisible(false)}
+      >
+        <ARCamera onClose={() => setIsCameraModalVisible(false)} />
+      </Modal>
 
       {isLoading && (
         <View style={tw`absolute inset-0 bg-black bg-opacity-50 justify-center items-center`}>
@@ -217,5 +261,6 @@ const Menu: React.FC = () => {
     </View>
   );
 };
+
 
 export default Menu;
