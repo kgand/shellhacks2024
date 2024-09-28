@@ -1,9 +1,10 @@
-import { Stack } from "expo-router";
+import { AuthProvider } from "@/contexts/AuthProvider";
+import { Slot, Stack } from "expo-router";
 
 export default function RootLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="index" />
-    </Stack>
+    <AuthProvider>
+      <Slot />
+    </AuthProvider>
   );
 }
