@@ -98,11 +98,12 @@ def upload_note(userID: str, class_name: str, img_data: str, topics: list):
             {"$set": {f"classes.{class_name}.notes": [new_note]}},
             upsert=True  # Create the user document if it doesn't exist
         )
+        
         print(f"New class created, and note uploaded for User ID: {userID}, Class: {class_name}")
 
-def find_notes_with_topics(userID: str, topics_map: map):
-    if not userID or not topics_map:
-        return {"error": "userID and topics_map are required"}
+def find_notes_with_topics(userID: str, class_name: str, topics: list):
+    if not userID or not class_name or not topics:
+        return {"error": "userID, class_name, and topics are required"}
 
     users_collection = db['users']
     user_doc = users_collection.find_one({"userID": userID})
@@ -110,115 +111,55 @@ def find_notes_with_topics(userID: str, topics_map: map):
     if not user_doc:
         return {"error": f"User ID {userID} does not exist"}
 
-    # Extract all the topics from the input map
-    input_topics = list(topics_map.keys())
+    # Check if the specified class exists for the user
+    user_classes = user_doc.get("classes", {})
+    if class_name not in user_classes:
+        return {"error": f"Class {class_name} does not exist for User ID {userID}"}
 
     matched_notes = []
+    class_data = user_classes[class_name]
 
-    # Loop through each class and its notes to find overlapping topics
-    for class_name, class_data in user_doc.get("classes", {}).items():
-        for note in class_data.get("notes", []):
-            note_topics = note.get("topics", [])
-            # Check if there's any overlap between the note's topics and the input topics
-            if any(topic in input_topics for topic in note_topics):
-                image = note.get("image")
-                matched_notes.append({
-                    "image": image
-                })
+    # Loop through notes in the specified class and find overlapping topics
+    for note in class_data.get("notes", []):
+        note_topics = note.get("topics", [])
+        # Check if there's any overlap between the note's topics and the input topics
+        if any(topic in topics for topic in note_topics):
+            image = note.get("image")
+            matched_notes.append({
+                "image": image
+            })
 
-    print(f"matched_notes: {matched_notes}")
+    return {"matched_notes": matched_notes}
+
 
 if __name__ == "__main__":
-
-    '''
-    #upload note testing
-    # Example user ID and class name
-    user_id = "user126"
-    class_name = "Lotion"
-    
-    # Image data (base64 or URL, depending on how you store it)
+    user_id = "user127"
+    class_name = "lotion up"
     img_data = "should display 1"
-    
-    # Example topics map with initial values
-    topics = {
-        "motion": 1,
-        "lotion": 2,
-        "abc": 3
-    }
-
-    # Call the function to upload the note
-    upload_note(user_id, class_name, img_data, topics)
-
-
-    # Image data (base64 or URL, depending on how you store it)
-    img_data = "should not display 1"
-    
-    # Example topics map with initial values
-    topics = {
-        "abc": 1,
-        "blah blah": 2,
-        "ignore": 3
-    }
+    topics = ["abc", "lotion", "motion"]
     upload_note(user_id, class_name, img_data, topics)
 
     img_data = "should display 2"
-    
-    # Example topics map with initial values
-    topics = {
-        "potion": 1,
-        "abc": 2,
-        "blah blah": 3
-    }
+    topics = ["abc", "potion", "motion"]
+    upload_note(user_id, class_name, img_data, topics)
 
-    # Call the function to upload the note
+    img_data = "should not display 1"
+    topics = ["abc", "blah blah", "ignore"]
     upload_note(user_id, class_name, img_data, topics)
 
     img_data = "should display 3"
-    
-    # Example topics map with initial values
-    topics = {
-        "motion": 3,
-        "lotion": 2,
-        "potion": 1
-    }
-
-    # Call the function to upload the note
+    topics = ["abc", "potion", "lotion"]
     upload_note(user_id, class_name, img_data, topics)
-    
 
+    class_name = "oil up"
     img_data = "should not display 2"
-    
-    # Example topics map with initial values
-    topics = {
-        "motion": 1,
-        "motio": 2,
-        "moti": 3
-    }
-    
-    # Call the function to upload the note
+    topics = ["abc", "blah blah", "ignore"]
     upload_note(user_id, class_name, img_data, topics)
-    '''
-    
 
-    '''
-    # get class testing
-    user_id = "user124"
-    
-    # Retrieve and print all classes for the user
-    classes = get_classes(user_id)
-    print(f"Classes for {user_id}: {classes}")
-    '''
+    img_data = "should display 3"
+    topics = ["abc", "potion", "lotion"]
+    upload_note(user_id, class_name, img_data, topics)
 
-    '''
-    # make user testing
-    user_id = "LH8xdA63PmPO9Sxg2hJGUlkzF2h1"
-    class_name = "DSA"
-    
-    # Create the user in the database
-    add_class(user_id, class_name)
-    '''
-
-    user_id = "user126"
-    topic_map = {"lotion" : 3, "potion" : 1}
-
-    find_notes_with_topics(user_id, topic_map)
+    class_name = "lotion up"
+    topics = ["potion", "lotion"]
+    print(find_notes_with_topics(user_id, class_name, topics))
