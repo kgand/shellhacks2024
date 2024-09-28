@@ -32,7 +32,7 @@ export const registerWithEmailandPassword = async (email: string, password: stri
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                userID: userId // Ensure the key is userID as expected by the backend
+                userId
             }),
         });
 
