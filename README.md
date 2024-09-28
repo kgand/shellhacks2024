@@ -33,7 +33,7 @@ body
 "userId" : string
 }
 
-/api/get_nodes
+/api/get_notes
 body
 {
 "userId" : string
