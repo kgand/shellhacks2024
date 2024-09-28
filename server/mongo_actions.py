@@ -5,6 +5,29 @@ from datetime import datetime
 client = MongoClient("mongodb+srv://Cluster41977:U2hydm16dU5r@cluster41977.ugaq7.mongodb.net/test?retryWrites=true&w=majority")
 db = client['noted']
 
+def create_user(userID: str):
+    # Reference to the users collection
+    users_collection = db['users']
+
+    # Check if the userID already exists in the database
+    existing_user = users_collection.find_one({"userID": userID})
+
+    if existing_user:
+        print(f"User ID {userID} already exists in the database.")
+        return False  # Return False to indicate the user already exists
+    else:
+        # Create a new user document with the provided userID
+        new_user = {
+            "userID": userID,
+            "classes": {}  # Initialize with an empty classes object
+        }
+        
+        # Insert the new user document into the database
+        users_collection.insert_one(new_user)
+        print(f"New user created with User ID: {userID}")
+        return True  # Return True to indicate the user was successfully created
+
+
 def get_classes(userID: str):
     # Reference to the users collection
     users_collection = db['users']
@@ -59,6 +82,7 @@ def upload_note(userID: str, class_name: str, img_data: str, topics: list):
 if __name__ == "__main__":
 
     '''
+    upload note testing
     # Example user ID and class name
     user_id = "user124"
     class_name = "Math102"
@@ -77,8 +101,15 @@ if __name__ == "__main__":
     upload_note(user_id, class_name, img_data, topics)
     '''
 
+    '''
+    get class testing
     user_id = "user124"
     
     # Retrieve and print all classes for the user
     classes = get_classes(user_id)
     print(f"Classes for {user_id}: {classes}")
+    '''
+    user_id = "user125"
+    
+    # Create the user in the database
+    create_user(user_id)
