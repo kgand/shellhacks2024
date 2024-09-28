@@ -1,11 +1,11 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { useRouter, useSegments } from 'expo-router';
 import { auth } from '@/configs/firebase';
 
 const AuthContext = createContext({});
 
-export function AuthProvider({ children }: { children: ReactNode}) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -14,6 +14,7 @@ export function AuthProvider({ children }: { children: ReactNode}) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
+      console.log(firebaseUser ? "Logged in" : "No Auth");
       setIsLoading(false);
     });
 
@@ -23,11 +24,9 @@ export function AuthProvider({ children }: { children: ReactNode}) {
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
-
-    if (!user && !inAuthGroup) {
+    if (!user) {
       router.replace('/(auth)/login');
-    } else if (user && inAuthGroup) {
+    } else {
       router.replace('/(pages)/home');
     }
   }, [user, segments, isLoading]);
@@ -39,5 +38,3 @@ export function AuthProvider({ children }: { children: ReactNode}) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-
-export const useAuth = () => useContext(AuthContext);
