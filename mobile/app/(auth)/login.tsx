@@ -1,11 +1,16 @@
+import Card from "@/components/login/Card";
 import { router } from "expo-router";
-import { Button, Text, View } from "react-native";
+import { Keyboard, TouchableWithoutFeedback } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 export default function Login() {
-    return (
-        <View>
-            <Text className="text-purple-500 text-2xl">Log in here</Text>
-            <Button title="Go to Register" onPress={() => router.push('/(auth)/register')} />
-        </View>
-    );
+  return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <SafeAreaView className="flex-1 w-screen bg-neutral-900 flex justify-center items-center">
+        <Toast onPress={Toast.hide} />
+        <Card />
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
+  );
 }
