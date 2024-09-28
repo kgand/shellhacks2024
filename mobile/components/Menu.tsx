@@ -127,7 +127,7 @@ const Menu: React.FC = () => {
             source={require('@/assets/logo.png')}
             style={tw`w-10 h-10 mr-2`}
           />
-          <Text style={tw`text-2xl font-bold text-white`}>Noted</Text>
+          <Text style={tw`text-2xl font-bold text-white`}>Noted.</Text>
         </View>
         <TouchableOpacity
           style={tw`flex-row items-center bg-neutral-800 rounded-full px-4 py-2`}
