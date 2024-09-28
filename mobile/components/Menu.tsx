@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, 
 import { Ionicons, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import axios from 'axios';
 import tw from 'twrnc';
 import CreateNoteModal from './CreateNoteModal';
 import { useNavigation } from '@react-navigation/native';
@@ -40,6 +39,7 @@ const Menu: React.FC = () => {
     fetchSubjectsAndNotes();
   }, []);
 
+
   useEffect(() => {
     const filtered = subjects.filter(subject =>
       subject.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -50,9 +50,23 @@ const Menu: React.FC = () => {
   const fetchSubjectsAndNotes = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get('http://10.108.74.57:5000/api/get_subjects');
-      setSubjects(response.data.subjects);
-      setNotes(response.data.notes);
+      const response = await fetch('http://10.108.74.57:5000/api/get_subjects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('Data:', data);
+      const classesArray = JSON.parse(data.classes.replace(/'/g, '"')); // Replace single quotes with double quotes
+      const subjectsArray = classesArray.map((className: string) => ({ id: className, name: className }));
+      setSubjects(subjectsArray); // Ensure subjects is always an array
+      setNotes(data.notes || []); // Ensure notes is always an array
+      console.log('Classes:', classesArray);
     } catch (error) {
       console.error('Error fetching data:', error);
       Toast.show({
@@ -60,6 +74,7 @@ const Menu: React.FC = () => {
         text1: 'Error',
         text2: 'Failed to load subjects and notes',
       });
+      setSubjects([]); // Ensure subjects is always an array
     } finally {
       setIsLoading(false);
     }
@@ -88,9 +103,16 @@ const Menu: React.FC = () => {
     if (searchQuery.trim() === '') return;
     setIsSearching(true);
     try {
-      const response = await axios.post('http://10.108.74.57:5000/api/query', { query: searchQuery });
-      setNotes(response.data.notes);
-      setFilteredSubjects(response.data.subjects);
+      const response = await fetch('http://10.108.74.57:5000/api/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: searchQuery }),
+      });
+      const data = await response.json();
+      setNotes(data.notes || []); // Ensure notes is always an array
+      setFilteredSubjects(data.subjects || []); // Ensure subjects is always an array
     } catch (error) {
       console.error('Error searching:', error);
       Toast.show({
