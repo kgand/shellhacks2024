@@ -131,7 +131,7 @@ def find_notes_with_topics(userID: str, class_name: str, topics: list):
 
     return {"matched_notes": matched_notes}
 
-
+'''
 if __name__ == "__main__":
     user_id = "user127"
     class_name = "lotion up"
@@ -163,3 +163,5 @@ if __name__ == "__main__":
     class_name = "lotion up"
     topics = ["potion", "lotion"]
     print(find_notes_with_topics(user_id, class_name, topics))
+    
+'''
