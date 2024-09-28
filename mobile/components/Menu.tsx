@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, TextInput, Image } from 'react-native';
 import { Ionicons, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +19,7 @@ interface Note {
   id: string;
   subjectId: string;
   content: string;
+  createdAt: string;
 }
 
 const Menu: React.FC = () => {
@@ -37,7 +38,6 @@ const Menu: React.FC = () => {
   useEffect(() => {
     fetchSubjectsAndNotes();
   }, []);
-
 
   useEffect(() => {
     const filtered = subjects.filter(subject =>
@@ -74,7 +74,6 @@ const Menu: React.FC = () => {
     setIsSketchModalVisible(true);
   };
 
-
   const handleNoteCreated = () => {
     fetchSubjectsAndNotes();
   };
@@ -88,7 +87,7 @@ const Menu: React.FC = () => {
     if (searchQuery.trim() === '') return;
     setIsSearching(true);
     try {
-      const response = await axios.post('http://10.108.164.65:5000/search', { query: searchQuery });
+      const response = await axios.post('http://your-flask-api-url/search', { query: searchQuery });
       setNotes(response.data.notes);
       setFilteredSubjects(response.data.subjects);
     } catch (error) {
@@ -115,25 +114,28 @@ const Menu: React.FC = () => {
 
   const renderNoteItem = ({ item }: { item: Note }) => (
     <TouchableOpacity style={tw`mb-4 p-4 bg-neutral-700 rounded-lg shadow-md`}>
-      <Text style={tw`text-base text-white`}>{item.content}</Text>
+      <Text style={tw`text-base text-white mb-2`}>{item.content}</Text>
+      <Text style={tw`text-xs text-neutral-400`}>{new Date(item.createdAt).toLocaleString()}</Text>
     </TouchableOpacity>
   );
 
-
   return (
     <View style={[tw`flex-1 bg-neutral-900`, { paddingTop: insets.top }]}>
-      <View style={tw`px-6 py-8 bg-black flex-row justify-between items-center`}>
-        <View style={tw`flex-1`}>
-          <Text style={tw`text-3xl font-bold text-white`}>Noted.</Text>
+      <View style={tw`px-6 py-4 bg-black flex-row justify-between items-center`}>
+        <View style={tw`flex-row items-center`}>
+          <Image
+            source={require('@/assets/logo.png')}
+            style={tw`w-10 h-10 mr-2`}
+          />
+          <Text style={tw`text-2xl font-bold text-white`}>Noted</Text>
         </View>
-        <View style={tw`flex-1 items-center`}>
-          <Text style={tw`text-white text-lg`}>{auth.currentUser?.email}</Text>
-        </View>
-        <View style={tw`flex-1 items-end`}>
-          <TouchableOpacity onPress={handleSignOut}>
-            <Ionicons name="log-out-outline" size={28} color="white" />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={tw`flex-row items-center bg-neutral-800 rounded-full px-4 py-2`}
+          onPress={handleSignOut}
+        >
+          <Text style={tw`text-white text-sm mr-2`}>{auth.currentUser?.email}</Text>
+          <Ionicons name="log-out-outline" size={20} color="white" />
+        </TouchableOpacity>
       </View>
 
       <View style={tw`px-6 py-4 bg-neutral-800`}>
@@ -147,7 +149,7 @@ const Menu: React.FC = () => {
             onSubmitEditing={handleSearch}
           />
           <TouchableOpacity onPress={handleSearch}>
-            <Ionicons name="search" size={28} color="white" />
+            <Ionicons name="search" size={24} color="white" />
           </TouchableOpacity>
         </View>
       </View>
@@ -192,11 +194,10 @@ const Menu: React.FC = () => {
       </ScrollView>
 
       <TouchableOpacity
-        style={tw`absolute bottom-10 right-10 bg-indigo-600 p-5 rounded-full shadow-lg flex-row items-center`}
+        style={tw`absolute bottom-10 right-10 bg-indigo-600 p-4 rounded-full shadow-lg`}
         onPress={handleCreateNewNote}
       >
-        <AntDesign name="edit" size={28} color="white" />
-        <Text style={tw`text-white font-semibold ml-3 text-lg`}>New Note</Text>
+        <AntDesign name="plus" size={28} color="white" />
       </TouchableOpacity>
 
       <CreateNoteModal
@@ -214,6 +215,5 @@ const Menu: React.FC = () => {
     </View>
   );
 };
-
 
 export default Menu;

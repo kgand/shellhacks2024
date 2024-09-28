@@ -1,6 +1,14 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, Modal, ActivityIndicator, ScrollView, TextInput } from 'react-native';
-import { Canvas, Path as SkiaPath, Skia, useTouchHandler, Text as SkiaText } from "@shopify/react-native-skia";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  ActivityIndicator,
+  ScrollView,
+  TextInput,
+} from 'react-native';
+import { Canvas, Path as SkiaPath, Skia, useTouchHandler } from '@shopify/react-native-skia';
 import Toast from 'react-native-toast-message';
 import tw from 'twrnc';
 import { captureRef } from 'react-native-view-shot';
@@ -19,24 +27,36 @@ interface SketchPath {
   strokeWidth: number;
 }
 
-interface TextBubble {
-  id: string;
-  content: string;
-  x: number;
-  y: number;
-}
+const colorOptions = [
+  '#FF0000', // Red
+  '#00FF00', // Green
+  '#0000FF', // Blue
+  '#FFFF00', // Yellow
+  '#FF00FF', // Magenta
+  '#00FFFF', // Cyan
+  '#FFA500', // Orange
+  '#800080', // Purple
+  '#FFFFFF', // White (Eraser)
+  '#000000', // Black
+  '#FFC0CB', // Pink
+  '#A52A2A', // Brown
+  '#808080', // Gray
+  '#FFD700', // Gold
+  '#ADFF2F', // GreenYellow
+  // Add more colors as needed
+];
 
-const colorOptions = ['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'];
-
-const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isVisible, onClose, subjectId, onNoteCreated }) => {
+const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
+  isVisible,
+  onClose,
+  subjectId,
+  onNoteCreated,
+}) => {
   const [paths, setPaths] = useState<SketchPath[]>([]);
   const [redoPaths, setRedoPaths] = useState<SketchPath[]>([]);
   const [color, setColor] = useState<string>('#000000');
   const [strokeWidth, setStrokeWidth] = useState<number>(5);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isDrawingMode, setIsDrawingMode] = useState<boolean>(true);
-  const [textBubbles, setTextBubbles] = useState<TextBubble[]>([]);
-  const [activeTextBubbleId, setActiveTextBubbleId] = useState<string | null>(null);
 
   const canvasRef = useRef(null);
 
@@ -48,15 +68,15 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isVisible, onClose, s
         quality: 1.0,
       });
 
-      const response = await fetch('http://10.108.164.65:5000/upload', {
+      const response = await fetch('http://your-flask-api-url/upload', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           sketch: base64Image,
-          subjectId: subjectId
-        })
+          subjectId,
+        }),
       });
 
       if (response.ok) {
@@ -104,18 +124,21 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isVisible, onClose, s
     [color, strokeWidth]
   );
 
-  const onDrawingActive = useCallback((touchInfo: any) => {
-    setPaths((currentPaths) => {
-      const { x, y } = touchInfo;
-      const currentPath = currentPaths[currentPaths.length - 1];
-      const lastPoint = currentPath.path.getLastPt();
-      const xMid = (lastPoint.x + x) / 2;
-      const yMid = (lastPoint.y + y) / 2;
+  const onDrawingActive = useCallback(
+    (touchInfo: any) => {
+      setPaths((currentPaths) => {
+        const { x, y } = touchInfo;
+        const currentPath = currentPaths[currentPaths.length - 1];
+        const lastPoint = currentPath.path.getLastPt();
+        const xMid = (lastPoint.x + x) / 2;
+        const yMid = (lastPoint.y + y) / 2;
 
-      currentPath.path.quadTo(lastPoint.x, lastPoint.y, xMid, yMid);
-      return [...currentPaths.slice(0, currentPaths.length - 1), currentPath];
-    });
-  }, []);
+        currentPath.path.quadTo(lastPoint.x, lastPoint.y, xMid, yMid);
+        return [...currentPaths.slice(0, currentPaths.length - 1), currentPath];
+      });
+    },
+    []
+  );
 
   const touchHandler = useTouchHandler(
     {
@@ -143,83 +166,61 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isVisible, onClose, s
     });
   };
 
-  const handleCanvasPress = (event: any) => {
-    const { locationX, locationY } = event.nativeEvent;
-    if (!isDrawingMode) {
-      const newTextBubbleId = Date.now().toString();
-      setTextBubbles([...textBubbles, { id: newTextBubbleId, content: '', x: locationX, y: locationY }]);
-      setActiveTextBubbleId(newTextBubbleId);
+  const handleColorSelect = (selectedColor: string) => {
+    setColor(selectedColor);
+    // If the selected color is white, set strokeWidth to 0 for eraser effect
+    if (selectedColor === '#FFFFFF') {
+      setStrokeWidth(0); // Set to 0 to act as an eraser
+    } else {
+      setStrokeWidth(5); // Reset to default stroke width for drawing
     }
-  };
-
-  const handleTextBubblePress = (id: string) => {
-    setActiveTextBubbleId(id);
-  };
-
-  const handleTextChange = (id: string, newContent: string) => {
-    setTextBubbles(textBubbles.map(bubble => 
-      bubble.id === id ? { ...bubble, content: newContent } : bubble
-    ));
   };
 
   return (
     <Modal visible={isVisible} animationType="slide">
       <View style={tw`flex-1 bg-neutral-900`}>
-        <View style={tw`px-6 py-8 bg-black flex-row justify-between items-center`}>
+        {/* Adjust the header styles to move it down */}
+        <View style={tw`mt-10 px-6 py-4 bg-black flex-row justify-between items-center`}>
           <TouchableOpacity onPress={onClose}>
             <Ionicons name="close" size={28} color="white" />
           </TouchableOpacity>
-          <Text style={tw`text-3xl font-bold text-white`}>New Note</Text>
+          <Text style={tw`text-2xl font-bold text-white`}>New Note</Text>
           <TouchableOpacity onPress={handleSubmitSketch}>
             <Text style={tw`text-lg font-semibold text-white`}>Save</Text>
           </TouchableOpacity>
         </View>
+        {/* Center the color options and adjust the undo/redo buttons */}
         <View style={tw`flex-row justify-between items-center px-6 py-4 bg-neutral-800`}>
-          <View style={tw`flex-row items-center`}>
-            <TouchableOpacity onPress={handleUndo} style={tw`mr-8`}>
-              <Ionicons name="arrow-undo" size={28} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleRedo} style={tw`mr-8`}>
-              <Ionicons name="arrow-redo" size={28} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setIsDrawingMode(!isDrawingMode)} style={tw`mr-8`}>
-              <MaterialIcons name={isDrawingMode ? "edit" : "create"} size={28} color="white" />
-            </TouchableOpacity>
+          <TouchableOpacity onPress={handleUndo} style={tw`mr-4`}>
+            <Ionicons name="arrow-undo" size={24} color="white" />
+          </TouchableOpacity>
+          {/* Centering the colors */}
+          <View style={tw`flex-1 justify-center`}>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false} 
+              contentContainerStyle={tw`flex-row justify-center`} // Center colors
+            >
+              {colorOptions.map((c) => (
+                <TouchableOpacity
+                  key={c}
+                  style={[
+                    tw`w-10 h-10 rounded-full mx-2`,
+                    { backgroundColor: c },
+                    color === c && tw`border-4 border-white`,
+                  ]}
+                  onPress={() => handleColorSelect(c)} // Use the new handler
+                />
+              ))}
+            </ScrollView>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={tw`flex-row`}>
-            {colorOptions.map((c) => (
-              <TouchableOpacity
-                key={c}
-                style={[
-                  tw`w-10 h-10 rounded-full mr-4`,
-                  { backgroundColor: c },
-                  color === c && tw`border-4 border-white`,
-                ]}
-                onPress={() => setColor(c)}
-              />
-            ))}
-          </ScrollView>
+          <TouchableOpacity onPress={handleRedo} style={tw`ml-4`}>
+            <Ionicons name="arrow-redo" size={24} color="white" />
+          </TouchableOpacity>
         </View>
-        <Canvas ref={canvasRef} style={tw`flex-1 bg-white`} onTouch={touchHandler} onPress={handleCanvasPress}>
+        <Canvas ref={canvasRef} style={tw`flex-1 bg-white`} onTouch={touchHandler}>
           {paths.map((path, index) => (
-            <SkiaPath
-              key={index}
-              path={path.path}
-              color={path.color}
-              style="stroke"
-              strokeWidth={path.strokeWidth}
-            />
-          ))}
-          {textBubbles.map((bubble) => (
-            <SkiaText
-              key={bubble.id}
-              x={bubble.x}
-              y={bubble.y}
-              text={bubble.content}
-              font={{ family: 'Arial', size: 16 }}
-              color={color}
-              onPress={() => handleTextBubblePress(bubble.id)}
-            />
+            <SkiaPath key={index} path={path.path} color={path.color} style="stroke" strokeWidth={path.strokeWidth} />
           ))}
         </Canvas>
         {isLoading && (
