@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Keyboard,
   ScrollView,
@@ -11,6 +11,10 @@ import {
 import Selector from "./Selector";
 import AddModal from "./Modal";
 import AnimatedBackground from "../AnimatedBackground";
+import { auth } from "@/configs/firebase";
+import Toast from "react-native-toast-message";
+import { addClasses } from "@/utils/classes";
+import { router } from "expo-router";
 
 export interface selectable {
   value: string;
@@ -22,6 +26,18 @@ export default function Card() {
   const [classes, setClasses] = useState<string[]>([]);
   const [selectedItems, setSelectedItems] = useState<selectable[]>([]);
   const [modalShow, setModalShown] = useState<boolean>(false);
+
+  useEffect(() => {
+    setClasses(selectedItems.map(item => item.value));
+  }, [selectedItems])
+
+  useEffect(() => {
+    console.log(classes);
+  }, [classes])
+
+  useEffect(() => {
+    console.log("Selected items: ", selectedItems);
+  }, [selectedItems]);
 
   const [items, setItems] = useState<selectable[]>([
     { value: "Calculus I", subject: "Mathematics", active: false },
@@ -98,6 +114,23 @@ export default function Card() {
     },
   ]);
 
+  const onSubmit = async () => {
+    if (!auth.currentUser?.uid || classes.length < 1) {
+      Toast.show({
+        type: 'error',
+        text1: "Missing id or classes"
+      })
+
+      return;
+    }
+
+    console.log("Submitting classes: ", classes);
+
+    await addClasses({userId: auth.currentUser?.uid, classes});
+
+    router.push('/(pages)/home');
+  }
+
   const groupItems = items.reduce((groups, item) => {
     const { subject } = item;
     if (!groups[subject]) {
@@ -113,10 +146,27 @@ export default function Card() {
         item.value === value ? { ...item, active: !item.active } : item
       )
     );
+
+    setSelectedItems((prevSelected) => {
+      const item = items.find((i) => i.value === value);
+      if (!item) return prevSelected;
+
+      console.log(item);
+
+      if (item.active) {
+        // Item was active, so we need to remove it from selected items
+        return prevSelected.filter((i) => i.value !== value);
+      } else {
+        // Item was inactive, so we need to add it to selected items
+        return [...prevSelected, { ...item, active: true }];
+      }
+    });
+
+    console.log(selectedItems);
   };
 
-  const addItem = (newItem: selectable) => {
-    setItems((prevItems) => [...prevItems, newItem]);
+  const addItem = (item: selectable) => {
+    setItems([...items, item]);
   };
 
 
@@ -147,7 +197,7 @@ export default function Card() {
         <TouchableOpacity onPress={() => setModalShown(true)} style={styles.addButton}>
           <Text style={styles.addButtonText}>+ Add custom class</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.continueButton}>
+        <TouchableOpacity onPress={onSubmit} style={styles.continueButton}>
           <Text style={styles.continueButtonText}>Continue</Text>
         </TouchableOpacity>
         <AddModal

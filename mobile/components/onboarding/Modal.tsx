@@ -36,8 +36,6 @@ export default function AddModal({ visible, onClose, onAdd }: Props) {
     }
   };
 
-  console.log(selectedSubject);
-
   return (
     <Modal
       animationType="slide"
