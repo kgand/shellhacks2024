@@ -10,6 +10,7 @@ const Stack = createStackNavigator();
 
 export default function App() {
   return (
+<<<<<<< HEAD
     <TailwindProvider utilities={utilities}>
       <SafeAreaProvider>
         <Stack.Navigator initialRouteName="Menu">
@@ -22,5 +23,16 @@ export default function App() {
         <Toast />
       </SafeAreaProvider>
     </TailwindProvider>
+=======
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      
+    </View>
+>>>>>>> auth done
   );
 }
