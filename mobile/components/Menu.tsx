@@ -197,7 +197,7 @@ const Menu: React.FC = () => {
         style={tw`absolute bottom-10 right-10 bg-indigo-600 p-4 rounded-full shadow-lg`}
         onPress={handleCreateNewNote}
       >
-        <AntDesign name="plus" size={28} color="white" />
+        <AntDesign name="plus" size={40} color="white" />
       </TouchableOpacity>
 
       <CreateNoteModal

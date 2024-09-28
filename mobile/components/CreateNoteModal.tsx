@@ -6,13 +6,12 @@ import {
   Modal,
   ActivityIndicator,
   ScrollView,
-  TextInput,
 } from 'react-native';
 import { Canvas, Path as SkiaPath, Skia, useTouchHandler } from '@shopify/react-native-skia';
 import Toast from 'react-native-toast-message';
 import tw from 'twrnc';
 import { captureRef } from 'react-native-view-shot';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
 interface CreateNoteModalProps {
   isVisible: boolean;
@@ -28,6 +27,8 @@ interface SketchPath {
 }
 
 const colorOptions = [
+  '#000000', // Black
+  '#FFFFFF', // White (Eraser)
   '#FF0000', // Red
   '#00FF00', // Green
   '#0000FF', // Blue
@@ -36,14 +37,16 @@ const colorOptions = [
   '#00FFFF', // Cyan
   '#FFA500', // Orange
   '#800080', // Purple
-  '#FFFFFF', // White (Eraser)
-  '#000000', // Black
   '#FFC0CB', // Pink
   '#A52A2A', // Brown
   '#808080', // Gray
   '#FFD700', // Gold
   '#ADFF2F', // GreenYellow
-  // Add more colors as needed
+  '#8B4513', // SaddleBrown
+  '#4B0082', // Indigo
+  '#FF4500', // OrangeRed
+  '#00CED1', // DarkTurquoise
+  '#FF1493', // DeepPink
 ];
 
 const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
@@ -168,55 +171,54 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
 
   const handleColorSelect = (selectedColor: string) => {
     setColor(selectedColor);
-    // If the selected color is white, set strokeWidth to 0 for eraser effect
-    if (selectedColor === '#FFFFFF') {
-      setStrokeWidth(0); // Set to 0 to act as an eraser
-    } else {
-      setStrokeWidth(5); // Reset to default stroke width for drawing
-    }
+    setStrokeWidth(selectedColor === '#FFFFFF' ? 20 : 5);
   };
 
   return (
     <Modal visible={isVisible} animationType="slide">
       <View style={tw`flex-1 bg-neutral-900`}>
-        {/* Adjust the header styles to move it down */}
-        <View style={tw`mt-10 px-6 py-4 bg-black flex-row justify-between items-center`}>
-          <TouchableOpacity onPress={onClose}>
-            <Ionicons name="close" size={28} color="white" />
+        <View style={tw`mt-10 px-4 py-3 bg-neutral-800 flex-row justify-between items-center`}>
+          <TouchableOpacity 
+            onPress={onClose}
+            style={tw`bg-neutral-700 rounded-full p-2`}
+          >
+            <Ionicons name="close" size={24} color="white" />
           </TouchableOpacity>
-          <Text style={tw`text-2xl font-bold text-white`}>New Note</Text>
-          <TouchableOpacity onPress={handleSubmitSketch}>
-            <Text style={tw`text-lg font-semibold text-white`}>Save</Text>
+          <Text style={tw`text-xl font-bold text-white`}>New Note</Text>
+          <TouchableOpacity 
+            onPress={handleSubmitSketch}
+            style={tw`bg-blue-500 rounded-full px-4 py-2`}
+          >
+            <Text style={tw`text-white font-semibold`}>Save</Text>
           </TouchableOpacity>
         </View>
-        {/* Center the color options and adjust the undo/redo buttons */}
-        <View style={tw`flex-row justify-between items-center px-6 py-4 bg-neutral-800`}>
-          <TouchableOpacity onPress={handleUndo} style={tw`mr-4`}>
-            <Ionicons name="arrow-undo" size={24} color="white" />
-          </TouchableOpacity>
-          {/* Centering the colors */}
-          <View style={tw`flex-1 justify-center`}>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false} 
-              contentContainerStyle={tw`flex-row justify-center`} // Center colors
-            >
-              {colorOptions.map((c) => (
-                <TouchableOpacity
-                  key={c}
-                  style={[
-                    tw`w-10 h-10 rounded-full mx-2`,
-                    { backgroundColor: c },
-                    color === c && tw`border-4 border-white`,
-                  ]}
-                  onPress={() => handleColorSelect(c)} // Use the new handler
-                />
-              ))}
-            </ScrollView>
+        <View style={tw`flex-row justify-between items-center px-4 py-2 bg-neutral-800`}>
+          <View style={tw`flex-row items-center`}>
+            <TouchableOpacity onPress={handleUndo} style={tw`mr-4 bg-neutral-700 rounded-full p-2`}>
+              <Ionicons name="arrow-undo" size={20} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleRedo} style={tw`mr-6 bg-neutral-700 rounded-full p-2`}>
+              <Ionicons name="arrow-redo" size={20} color="white" />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity onPress={handleRedo} style={tw`ml-4`}>
-            <Ionicons name="arrow-redo" size={24} color="white" />
-          </TouchableOpacity>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            contentContainerStyle={tw`flex-row`}
+          >
+            {colorOptions.map((c) => (
+              <TouchableOpacity
+                key={c}
+                style={[
+                  tw`w-8 h-8 rounded-full mx-1`,
+                  { backgroundColor: c },
+                  color === c && tw`border-2 border-white`,
+                  c === '#FFFFFF' && tw`border border-gray-300`, // Add border to white color
+                ]}
+                onPress={() => handleColorSelect(c)}
+              />
+            ))}
+          </ScrollView>
         </View>
         <Canvas ref={canvasRef} style={tw`flex-1 bg-white`} onTouch={touchHandler}>
           {paths.map((path, index) => (
