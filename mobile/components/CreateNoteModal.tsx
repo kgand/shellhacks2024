@@ -189,7 +189,7 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
             onPress={handleSubmitSketch}
             style={tw`bg-blue-500 rounded-full px-4 py-2`}
           >
-            <Text style={tw`text-white font-semibold`}>Save</Text>
+            <Text style={tw`text-white font-semibold`}>Upload</Text>
           </TouchableOpacity>
         </View>
         <View style={tw`flex-row justify-between items-center px-4 py-2 bg-neutral-800`}>
