@@ -16,7 +16,7 @@ export default function App() {
           <Stack.Screen 
             name="Menu" 
             component={Menu} 
-            options={{ headerShown: false }} 
+            options={{ headerShown: false }}
           />
         </Stack.Navigator>
         <Toast />
