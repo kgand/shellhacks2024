@@ -68,7 +68,7 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
         quality: 1.0,
       });
 
-      const response = await fetch('http://your-flask-api-url/upload', {
+      const response = await fetch('http://10.108.74.57:5000/upload', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
