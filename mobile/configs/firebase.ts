@@ -1,6 +1,8 @@
 import { initializeApp } from "firebase/app";
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+//@ts-ignore
 import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+//@ts-check
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_API_KEY as string,
