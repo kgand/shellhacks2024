@@ -1,15 +1,24 @@
-import { Text, View } from "react-native";
+import React from 'react';
+import { createStackNavigator } from '@react-navigation/stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { TailwindProvider } from 'tailwind-rn';
+import utilities from './tailwind.json';
+import Menu from '../components/Menu';
 
-export default function Index() {
+const Stack = createStackNavigator();
+
+export default function App() {
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-    </View>
+    <TailwindProvider utilities={utilities}>
+      <SafeAreaProvider>
+        <Stack.Navigator initialRouteName="Menu">
+          <Stack.Screen 
+            name="Menu" 
+            component={Menu} 
+            options={{ headerShown: false }} 
+          />
+        </Stack.Navigator>
+      </SafeAreaProvider>
+    </TailwindProvider>
   );
 }
