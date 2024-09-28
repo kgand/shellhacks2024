@@ -1,6 +1,7 @@
 import { auth } from "@/configs/firebase";
 import { router } from "expo-router";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { checkServer } from "./network";
 
 export const loginWithEmailAndPassword = async (email: string, password: string) => {
     try {
@@ -17,6 +18,10 @@ export const loginWithEmailAndPassword = async (email: string, password: string)
 
 export const registerWithEmailandPassword = async (email: string, password: string) => {
     try {
+        const check = await checkServer();
+
+        if (!check) throw Error("Cannot reach server");
+
         const response = await createUserWithEmailAndPassword(auth, email, password);
         const userId = auth.currentUser?.uid;
 

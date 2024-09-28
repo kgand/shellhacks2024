@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else if (group === undefined && user) {
       router.replace('/(pages)/home')
     }
+
   }, [user, segments, isLoading]);
 
   const value = {

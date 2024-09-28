@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Keyboard,
   ScrollView,
@@ -9,6 +9,10 @@ import {
 } from "react-native";
 import Selector from "./Selector";
 import AddModal from "./Modal";
+import { addClasses } from "@/utils/classes";
+import { auth } from "@/configs/firebase";
+import Toast from "react-native-toast-message";
+import { router } from "expo-router";
 
 export interface selectable {
   value: string;
@@ -118,6 +122,10 @@ export default function Card() {
     { value: "Special Topics in History", subject: "History", active: false },
   ]);
 
+  useEffect(() => {
+    setClasses(selectedItems.map(item => item.value));
+  }, [selectedItems])
+
   const groupItemsBySubject = (items: selectable[]) => {
     return items.reduce<Record<string, selectable[]>>((acc, item) => {
       if (!acc[item.subject]) {
@@ -155,6 +163,21 @@ export default function Card() {
     setItems([...items, item]);
   };
 
+  const onSubmit = async () => {
+    if (!auth.currentUser?.uid || classes.length < 1) {
+      Toast.show({
+        type: 'error',
+        text1: "Missing id or classes"
+      })
+
+      return;
+    }
+
+    await addClasses({userId: auth.currentUser?.uid, classes});
+
+    router.push('/(pages)/home');
+  }
+
   console.log(selectedItems);
   return (
     <View className="h-[70%] w-[70%] border-neutral-700 border-[1px] rounded-2xl p-10 flex items-center flex-col">
@@ -185,7 +208,7 @@ export default function Card() {
       <TouchableOpacity onPress={() => setModalShown(true)} className="bg-blue-500 px-3 py-2 mb-5 rounded-xl">
         <Text className="text-white">+ Add custom class</Text>
       </TouchableOpacity>
-      <TouchableOpacity className="bg-white w-[70%] h-[8%] justify-center items-center rounded-lg">
+      <TouchableOpacity onPress={onSubmit} className="bg-white w-[70%] h-[8%] justify-center items-center rounded-lg">
         <Text className="text-black font-semibold text-xl">Continue</Text>
       </TouchableOpacity>
       <AddModal
