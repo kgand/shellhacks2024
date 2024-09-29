@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Camera, CameraType } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { styled } from 'nativewind';
+import { useNavigation } from '@react-navigation/native';
 
 interface ARCameraProps {
   onClose: () => void;
@@ -15,6 +16,7 @@ const StyledTouchableOpacity = styled(TouchableOpacity);
 const ARCamera: React.FC<ARCameraProps> = ({ onClose }) => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [cameraRef, setCameraRef] = useState<Camera | null>(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     (async () => {
@@ -39,7 +41,10 @@ const ARCamera: React.FC<ARCameraProps> = ({ onClose }) => {
       />
       <StyledTouchableOpacity
         className="absolute top-10 left-10 bg-black bg-opacity-50 p-3 rounded-full"
-        onPress={onClose}
+        onPress={() => {
+          onClose();
+          navigation.navigate('Menu'); // Ensure it navigates to the Menu screen
+        }}
       >
         <Ionicons name="arrow-back" size={24} color="white" />
       </StyledTouchableOpacity>

@@ -178,11 +178,24 @@ const Menu: React.FC = () => {
 
   const renderSubjectItem = ({ item }: { item: Subject }) => (
     <TouchableOpacity
-      style={tw`mb-4 p-4 bg-neutral-800 rounded-lg shadow-md flex-row items-center`}
+      style={tw`mb-4 p-4 bg-neutral-800 rounded-lg shadow-md flex-row items-center justify-between`}
       onPress={() => handleSubjectPress(item)}
     >
-      <Ionicons name="book-outline" size={24} color="#ffffff" />
-      <Text style={tw`ml-3 text-lg font-semibold text-white`}>{item.name}</Text>
+      <View style={tw`flex-row items-center`}>
+        <Ionicons name="book-outline" size={24} color="#ffffff" />
+        <Text style={tw`ml-3 text-lg font-semibold text-white`}>{item.name}</Text>
+      </View>
+      <TouchableOpacity
+        style={tw`ml-4 bg-indigo-600 px-4 py-2 rounded-lg`}
+        onPress={(e) => {
+          e.stopPropagation();
+          navigation.navigate('Quiz', { subjectId: item.id });
+        }}
+      >
+        <Text style={tw`text-white text-center font-bold`}>
+          Create Quiz <Text style={tw`text-yellow-400`}>✨</Text>
+        </Text>
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 

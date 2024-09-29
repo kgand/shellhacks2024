@@ -5,6 +5,7 @@ import SubjectDetails from '@/components/SubjectDetails';
 import CreateNote from '@/components/CreateNote';
 import Query from '@/components/Query';
 import QueryResults from '@/components/QueryResults';
+import Quiz from '@/components/Quiz';
 
 const Stack = createStackNavigator();
 
@@ -16,6 +17,7 @@ export default function PageLayout() {
             <Stack.Screen name="CreateNote" component={CreateNote} />
             <Stack.Screen name="Query" component={Query} />
             <Stack.Screen name="QueryResults" component={QueryResults} />
+            <Stack.Screen name="Quiz" component={Quiz} />
         </Stack.Navigator>
     )
 }
