@@ -15,10 +15,10 @@ import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import tw from 'twrnc';
 import CreateNoteModal from './CreateNoteModal';
-import ARCamera from './ARCamera';
 import { auth } from '@/configs/firebase';
 import { appSignOut } from '@/utils/auth';
 import { useNavigation } from '@react-navigation/native';
+import CameraModal from './camera/CameraModal';
 
 interface Subject {
   id: string;
@@ -158,6 +158,7 @@ const Menu: React.FC = () => {
       }
 
       const data = await response.json();
+      {/*@ts-ignore*/}
       navigation.navigate('QueryResults', { matchedNotes: data.matched_notes });
     } catch (error) {
       console.error('Error querying notes:', error);
@@ -243,6 +244,7 @@ const Menu: React.FC = () => {
         </View>
       </View>
 
+{/*@ts-ignore*/}
       <FlatList
         data={selectedSubject ? notes : filteredSubjects}
         renderItem={selectedSubject ? renderNoteItem : renderSubjectItem}
@@ -303,14 +305,7 @@ const Menu: React.FC = () => {
         userId={userId}
       />
 
-      <Modal
-        visible={isCameraModalVisible}
-        animationType="slide"
-        onRequestClose={() => setIsCameraModalVisible(false)}
-        transparent={false}
-      >
-        <ARCamera onClose={() => setIsCameraModalVisible(false)} />
-      </Modal>
+      <CameraModal visible={isCameraModalVisible} onClose={() => setIsCameraModalVisible(false)} />
 
       {isLoading && (
         <View style={tw`absolute inset-0 bg-black bg-opacity-50 justify-center items-center z-30`}>
