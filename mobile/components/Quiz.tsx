@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Image, Modal } from 'react-native';
 import axios from 'axios';
 import tw from 'twrnc';
 import { auth } from '@/configs/firebase';
@@ -31,6 +31,7 @@ const Quiz: React.FC = () => {
   const [score, setScore] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [quizCompleted, setQuizCompleted] = useState<boolean>(false);
+  const [errorModalVisible, setErrorModalVisible] = useState<boolean>(false);
 
   const navigation = useNavigation();
   const route = useRoute();
@@ -60,12 +61,7 @@ const Quiz: React.FC = () => {
       setQuestions(quizData.questions);
     } catch (error) {
       console.error('Error fetching questions:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to load quiz questions',
-      });
-      navigation.goBack(); // Navigate back to the menu
+      setErrorModalVisible(true);
     } finally {
       setIsLoading(false);
     }
@@ -164,6 +160,29 @@ const Quiz: React.FC = () => {
           renderQuestion()
         )}
       </ScrollView>
+
+      <Modal
+        visible={errorModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setErrorModalVisible(false)}
+      >
+        <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
+          <View style={tw`bg-white p-6 rounded-lg`}>
+            <Text style={tw`text-black text-lg font-bold mb-4`}>Error</Text>
+            <Text style={tw`text-black mb-4`}>There was an error generating the quiz questions. Please try again.</Text>
+            <TouchableOpacity
+              style={tw`bg-red-500 px-4 py-2 rounded-lg`}
+              onPress={() => {
+                setErrorModalVisible(false);
+                navigation.goBack();
+              }}
+            >
+              <Text style={tw`text-white text-center font-bold`}>Back to Subjects</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
