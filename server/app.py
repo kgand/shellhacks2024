@@ -44,20 +44,20 @@ def query():
     
     text = data["text"] 
     user_id = data["userId"]
+    limit = 1
+    if("limit" in data.keys()):
+        limit = data["limit"]
 
     user_classes = get_classes(user_id)
 
     # Using the Text, process into a class, and topics
     likely_class = get_likely_class_from_sentence(text, user_classes)
-    
     topics = get_topics_gpt(text, likely_class)
-    print(topics)
     topics = topics.split(", ")
 
-    results = find_notes_with_topics(user_id, likely_class, topics)
+    results = find_notes_with_topics(user_id, likely_class, topics, limit)
 
     # Get top 5 related topics based on the class. Run sentiment comparison on class notes, and choose 5 most related
-
     return jsonify(results)
 
 

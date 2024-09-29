@@ -71,7 +71,6 @@ def extract_png_text_live(
     # text_response = client.text_detection(image=image)
     text_response = client.text_detection(image=image).text_annotations
     # label_response = client.label_detection(image=image).label_annotations
-    print(text_response)
     # print(label_response)
     text_result = []
     # label_result = []

@@ -58,7 +58,7 @@ def get_class_gpt(s: str, instruction: str) -> str:
     if response.status_code == 200:
         result = response.json()
         reply = result['choices'][0]['message']['content']
-        print("ChatGPT:", reply)
+        print("ChatGPT:", reply, "\n", "Input:", s, "\nInstruction:", instruction)
         return reply
     else:
         print("Error:", response.status_code, response.text)
@@ -80,9 +80,9 @@ def get_likely_class_from_sentence(s:str, classes: str):
     classes = ", ".join(classes)
 
     instruction_string = f"""
-    Your purpose is to take text that a question about a class from a user, and return the class that question is most likely about.
+    Your purpose is to take text that represents a question or statement about a class subject from a user, and return the class that the question or statement is most likely about.
     ONLY choose from the following classes: {classes}. Only respond with one of these classes 
-    and nothing more.
+    and nothing more. Do not add anything extra.
     """
     return get_class_gpt(s, instruction_string)
 
@@ -116,7 +116,7 @@ ONLY Return 1 to 5 topics. ONLY include the comma separated list. The topics sho
     if response.status_code == 200:
         result = response.json()
         reply = result['choices'][0]['message']['content']
-        print("ChatGPT:", reply)
+        print(f"ChatGPT Response to get topic from {likely_class}:", reply)
         return reply
     else:
         print("Error:", response.status_code, response.text)

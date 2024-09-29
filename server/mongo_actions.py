@@ -101,7 +101,7 @@ def upload_note(userID: str, class_name: str, img_data: str, topics: list):
         
         print(f"New class created, and note uploaded for User ID: {userID}, Class: {class_name}")
 
-def find_notes_with_topics(userID: str, class_name: str, topics: list):
+def find_notes_with_topics(userID: str, class_name: str, topics: list, limit: int):
     if not userID or not class_name or not topics:
         return {"error": "userID, class_name, and topics are required"}
 
@@ -127,9 +127,11 @@ def find_notes_with_topics(userID: str, class_name: str, topics: list):
         # Check if there's any overlap between the note's topics and the input topics
         if any(topic in topics for topic in note_topics):
             image = note.get("image")
-            matched_notes.append({
-                "image": image
-            })
+            matched_notes.append(
+               image
+            )
+            if(len(matched_notes) == limit):
+                break
         last_image_data = note.get("image")
 
     if(len(matched_notes) == 0):
@@ -152,7 +154,6 @@ def grab_notes(userID: str, class_name: str):
         notes_array = list(user_doc["classes"][class_name]["notes"])
         for n in notes_array:
             img_data = n["image"]
-            print(img_data)
             result.append(img_data)
     else:
         print("No classes found for User ID:", userID)
