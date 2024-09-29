@@ -5,36 +5,35 @@
 
 
 
-![GitHub stars](https://img.shields.io/github/stars/your-username/your-repo)
-![GitHub issues](https://img.shields.io/github/issues/your-username/your-repo)
-![GitHub license](https://img.shields.io/github/license/your-username/your-repo)
-![GitHub forks](https://img.shields.io/github/forks/your-username/your-repo)
 
 ## 🚀 Project Overview
 
-**Project Name** is a [short project description]. It aims to [solve a problem, create a service, build a tool, etc.]. This project uses [key tools or technologies] to provide [a feature or benefit]. 
+**Lotion** provides slippery smooth notes supercharged by AI and AR. Our immersive platform combines Augmented Reality and Artificial Intelligence to make assisted learning available to all.
 
-Add a few sentences about what the project does and why it's helpful or useful.
+We came up with this idea when one of our teammates was studying for statistics before the beginning of the Hackathon. He realized that he was spending ages and ages navigating through the uncountable amounts of hopelessly long notes he had taken for his first exam. 
+
+Thus, we had the idea to create an AI powered note taking platform that classified, stored, and retrieved notes whenever you needed. Not only does it take away all the headache of searching through your notes by providing a note querying system based on your questions, it has an immersive AR based system that scans your homework to return the most relevant notes!
 
 ## 🌟 Features
 
-- ✨ **Feature One**: Brief description.
-- 🚀 **Feature Two**: Brief description.
-- 🔧 **Feature Three**: Brief description.
-- 📈 **Feature Four**: Brief description.
+- ✨ **Note Classification**: Automatically classifies and stores your handwritten or typed notes
+                              based on content and the classes you are taking
+- 🚀 **AR Note Annotations**: Displays relevant notes based on scanned information in your camera
+- 🔧 **Note Querying**: Returns relevant notes based on text input questions or statements
+- 📈 **Interactive Interface**: Ease of access to all taken notes
 
 ## 🔧 Tools and Technologies
 
 This project uses:
 
 - **Programming Languages**: 
-  - [e.g., JavaScript, Python, TypeScript]
+  - Typescript, Python, JavaScript
 - **Frameworks and Libraries**: 
-  - [e.g., React, Express, Django]
+  - React Native, Expo, Flask, HuggingFace, Tailwind, Axios
 - **Database**: 
-  - [e.g., MySQL, MongoDB, PostgreSQL]
-- **Others**: 
-  - [e.g., Docker, Git, CI/CD Tools]
+  - MongoDB, Firebase
+- **APIs Used**: 
+  - Google Vision API, ChatGPT API
 
 ## 📦 Installation
 
@@ -61,42 +60,17 @@ To get a copy of this project up and running locally, follow these steps:
 
 Describe here how to use the application. You can provide example commands, screenshots, or video tutorials to help users understand how to use it effectively.
 
-## 🤝 Contributing
-
-Contributions are welcome! Here's how you can contribute to this project:
-
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature-name`).
-3. Commit your changes (`git commit -m 'Add some feature'`).
-4. Push to the branch (`git push origin feature-name`).
-5. Open a pull request.
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for more details on the code of conduct and the process for submitting pull requests.
-
-## 🐛 Issues
-
-Feel free to submit issues and enhancement requests.
-
-1. Go to the [Issues page](https://github.com/your-username/your-repo/issues).
-2. Click on **New Issue**.
-3. Describe the issue with as much detail as possible.
-
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
 
 ## 🙏 Acknowledgements
 
-- [Person 1](https://github.com/person1) - for helping with initial planning.
-- [Library 1](https://link-to-library) - used for providing an important feature.
+- Hugo Liu: Flask Backend, API Interfacing
 
 ## 📞 Contact
 
-For any inquiries or questions, feel free to reach out:
-
-- **Name**: [Your Name]
-- **Email**: [you@example.com]
-- **GitHub**: [https://github.com/your-username](https://github.com/your-username)
+- Alexander Lou: 
+- Alexander Wang: 
+- Hugo Liu: https://www.linkedin.com/in/hugo-liu-dolphin/
+- Khovid Gandreti: 
 
 ---
 
