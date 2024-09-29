@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,7 +18,7 @@ interface CreateNoteModalProps {
   onClose: () => void;
   subjectId: string | null;
   onNoteCreated: () => void;
-  userId: string | undefined; // Add userId to props
+  userId: string | undefined;
 }
 
 interface SketchPath {
@@ -28,33 +28,18 @@ interface SketchPath {
 }
 
 const colorOptions = [
-  '#000000', // Black
-  '#FFFFFF', // White (Eraser)
-  '#FF0000', // Red
-  '#00FF00', // Green
-  '#0000FF', // Blue
-  '#FFFF00', // Yellow
-  '#FF00FF', // Magenta
-  '#00FFFF', // Cyan
-  '#FFA500', // Orange
-  '#800080', // Purple
-  '#FFC0CB', // Pink
-  '#A52A2A', // Brown
-  '#808080', // Gray
-  '#FFD700', // Gold
-  '#ADFF2F', // GreenYellow
-  '#8B4513', // SaddleBrown
-  '#4B0082', // Indigo
-  '#FF4500', // OrangeRed
-  '#00CED1', // DarkTurquoise
-  '#FF1493', // DeepPink
+  '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF',
+  '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080',
+  '#FFC0CB', '#A52A2A', '#808080', '#FFD700', '#ADFF2F',
+  '#8B4513', '#4B0082', '#FF4500', '#00CED1', '#FF1493',
 ];
+
 const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
   isVisible,
   onClose,
   subjectId,
   onNoteCreated,
-  userId, // Destructure userId from props
+  userId,
 }) => {
   const [paths, setPaths] = useState<SketchPath[]>([]);
   const [redoPaths, setRedoPaths] = useState<SketchPath[]>([]);
@@ -70,7 +55,7 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
       const base64Image = await captureRef(canvasRef, {
         format: 'png',
         quality: 1.0,
-        result: 'base64', // Ensure it's returning base64
+        result: 'base64',
       });
 
       const response = await fetch('http://10.108.74.57:5000/api/upload', {
@@ -79,8 +64,8 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          image: base64Image, // Sending Base64 image
-          userId, // Use userId here
+          image: base64Image,
+          userId,
         }),
       });
 
@@ -109,6 +94,7 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
       setIsLoading(false);
     }
   };
+
   const onDrawingStart = useCallback(
     (touchInfo: any) => {
       setPaths((currentPaths) => {
@@ -152,27 +138,43 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
     [onDrawingActive, onDrawingStart]
   );
 
-  const handleUndo = () => {
+  const handleUndo = useCallback(() => {
     setPaths((currentPaths) => {
       if (currentPaths.length === 0) return currentPaths;
       const newRedoPaths = [...redoPaths, currentPaths[currentPaths.length - 1]];
       setRedoPaths(newRedoPaths);
       return currentPaths.slice(0, -1);
     });
-  };
-  const handleRedo = () => {
+  }, [redoPaths]);
+
+  const handleRedo = useCallback(() => {
     setRedoPaths((currentRedoPaths) => {
       if (currentRedoPaths.length === 0) return currentRedoPaths;
       const newPaths = [...paths, currentRedoPaths[currentRedoPaths.length - 1]];
       setPaths(newPaths);
       return currentRedoPaths.slice(0, -1);
     });
-  };
+  }, [paths]);
 
-  const handleColorSelect = (selectedColor: string) => {
+  const handleColorSelect = useCallback((selectedColor: string) => {
     setColor(selectedColor);
     setStrokeWidth(selectedColor === '#FFFFFF' ? 20 : 5);
-  };
+  }, []);
+
+  const MemoizedColorOptions = useMemo(() => (
+    colorOptions.map((c) => (
+      <TouchableOpacity
+        key={c}
+        style={[
+          tw`w-8 h-8 rounded-full mx-1`,
+          { backgroundColor: c },
+          color === c && tw`border-2 border-white`,
+          c === '#FFFFFF' && tw`border border-gray-300`,
+        ]}
+        onPress={() => handleColorSelect(c)}
+      />
+    ))
+  ), [color, handleColorSelect]);
 
   return (
     <Modal visible={isVisible} animationType="slide">
@@ -206,18 +208,7 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
             showsHorizontalScrollIndicator={false} 
             contentContainerStyle={tw`flex-row`}
           >
-            {colorOptions.map((c) => (
-              <TouchableOpacity
-                key={c}
-                style={[
-                  tw`w-8 h-8 rounded-full mx-1`,
-                  { backgroundColor: c },
-                  color === c && tw`border-2 border-white`,
-                  c === '#FFFFFF' && tw`border border-gray-300`, // Add border to white color
-                ]}
-                onPress={() => handleColorSelect(c)}
-              />
-            ))}
+            {MemoizedColorOptions}
           </ScrollView>
         </View>
         <Canvas ref={canvasRef} style={tw`flex-1 bg-white`} onTouch={touchHandler}>
@@ -235,4 +226,4 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
   );
 };
 
-export default CreateNoteModal;
+export default React.memo(CreateNoteModal);

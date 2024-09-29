@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -27,7 +27,6 @@ const colorOptions = [
   '#8B4513', '#4B0082', '#FF4500', '#00CED1', '#FF1493',
 ];
 
-
 const CreateNote: React.FC = () => {
   const [paths, setPaths] = useState<SketchPath[]>([]);
   const [redoPaths, setRedoPaths] = useState<SketchPath[]>([]);
@@ -47,7 +46,6 @@ const CreateNote: React.FC = () => {
         quality: 1.0,
         result: 'base64',
       });
-
 
       const response = await fetch('http://10.108.74.57:5000/api/upload', {
         method: 'POST',
@@ -101,7 +99,6 @@ const CreateNote: React.FC = () => {
     [color, strokeWidth]
   );
 
-
   const onDrawingActive = useCallback(
     (touchInfo: any) => {
       setPaths((currentPaths) => {
@@ -118,7 +115,6 @@ const CreateNote: React.FC = () => {
     []
   );
 
-
   const touchHandler = useTouchHandler(
     {
       onActive: onDrawingActive,
@@ -127,29 +123,44 @@ const CreateNote: React.FC = () => {
     [onDrawingActive, onDrawingStart]
   );
 
-
-  const handleUndo = () => {
+  const handleUndo = useCallback(() => {
     setPaths((currentPaths) => {
       if (currentPaths.length === 0) return currentPaths;
       const newRedoPaths = [...redoPaths, currentPaths[currentPaths.length - 1]];
       setRedoPaths(newRedoPaths);
       return currentPaths.slice(0, -1);
     });
-  };
+  }, [redoPaths]);
 
-  const handleRedo = () => {
+  const handleRedo = useCallback(() => {
     setRedoPaths((currentRedoPaths) => {
       if (currentRedoPaths.length === 0) return currentRedoPaths;
       const newPaths = [...paths, currentRedoPaths[currentRedoPaths.length - 1]];
       setPaths(newPaths);
       return currentRedoPaths.slice(0, -1);
     });
-  };
+  }, [paths]);
 
-  const handleColorSelect = (selectedColor: string) => {
+  const handleColorSelect = useCallback((selectedColor: string) => {
     setColor(selectedColor);
     setStrokeWidth(selectedColor === '#FFFFFF' ? 20 : 5);
-  };
+  }, []);
+
+
+  const MemoizedColorOptions = useMemo(() => (
+    colorOptions.map((c) => (
+      <TouchableOpacity
+        key={c}
+        style={[
+          tw`w-8 h-8 rounded-full mx-1`,
+          { backgroundColor: c },
+          color === c && tw`border-2 border-white`,
+          c === '#FFFFFF' && tw`border border-gray-300`,
+        ]}
+        onPress={() => handleColorSelect(c)}
+      />
+    ))
+  ), [color, handleColorSelect]);
 
   return (
     <View style={tw`flex-1 bg-neutral-900`}>
@@ -182,18 +193,7 @@ const CreateNote: React.FC = () => {
           showsHorizontalScrollIndicator={false} 
           contentContainerStyle={tw`flex-row`}
         >
-          {colorOptions.map((c) => (
-            <TouchableOpacity
-              key={c}
-              style={[
-                tw`w-8 h-8 rounded-full mx-1`,
-                { backgroundColor: c },
-                color === c && tw`border-2 border-white`,
-                c === '#FFFFFF' && tw`border border-gray-300`,
-              ]}
-              onPress={() => handleColorSelect(c)}
-            />
-          ))}
+          {MemoizedColorOptions}
         </ScrollView>
       </View>
       <Canvas ref={canvasRef} style={tw`flex-1 bg-white`} onTouch={touchHandler}>
@@ -210,5 +210,4 @@ const CreateNote: React.FC = () => {
   );
 };
 
-
-export default CreateNote;
+export default React.memo(CreateNote);
