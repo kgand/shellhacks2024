@@ -53,7 +53,8 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-view-shot": "^3.8.0",
     "react-native-web": "~0.19.10",
-    "twrnc": "^4.5.1"
+    "twrnc": "^4.5.1",
+    "expo-sensors": "~13.0.9"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

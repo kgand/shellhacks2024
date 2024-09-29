@@ -8,6 +8,7 @@ import CreateNoteModal from './CreateNoteModal';
 import ARCamera from './ARCamera'; // Import ARCamera component
 import { auth } from '@/configs/firebase';
 import { appSignOut } from '@/utils/auth';
+import CameraModal from './camera/CameraModal';
 
 interface Subject {
   id: string;
@@ -245,13 +246,7 @@ const Menu: React.FC = () => {
         userId={userId} // Pass userId as a prop
       />
 
-      <Modal
-        visible={isCameraModalVisible}
-        animationType="slide"
-        onRequestClose={() => setIsCameraModalVisible(false)}
-      >
-        <ARCamera onClose={() => setIsCameraModalVisible(false)} />
-      </Modal>
+      <CameraModal />
 
       {isLoading && (
         <View style={tw`absolute inset-0 bg-black bg-opacity-50 justify-center items-center`}>
