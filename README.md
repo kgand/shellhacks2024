@@ -1,6 +1,5 @@
-# Lotion AI/AR
+# /mobile/assets/logo-removebg.pngotion AI/AR
 
-![Project Banner](/mobile/assets/logo-removebg.png)
 
 ![GitHub stars](https://img.shields.io/github/stars/your-username/your-repo)
 ![GitHub issues](https://img.shields.io/github/issues/your-username/your-repo)
