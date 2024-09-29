@@ -169,8 +169,8 @@ export default function Card() {
 
   const addItem = (item: selectable) => {
     setItems([...items, item]);
+    setSelectedItems([...selectedItems, item]);
   };
-
 
   return (
     <View style={styles.container}>

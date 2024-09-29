@@ -52,7 +52,7 @@ export default function AddModal({ visible, onClose, onAdd }: Props) {
           onPress={Keyboard.dismiss}
           className="flex-1 justify-center items-center bg-black/50"
         >
-          <View className="bg-black w-[80%] max-w-[400px] aspect-[4/3] border-2 border-neutral-600 rounded-3xl p-6">
+          <View className="bg-black w-[90%] max-w-[400px] aspect-[4/3] border-2 border-neutral-600 rounded-3xl p-6">
             <Text className="text-white font-semibold text-2xl mb-6 text-center">
               Add a Class
             </Text>
@@ -223,7 +223,7 @@ export default function AddModal({ visible, onClose, onAdd }: Props) {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleAdd}
-                className="px-6 py-3 rounded-lg bg-blue-600"
+                className="px-6 py-3 rounded-lg bg-indigo-600"
               >
                 <Text className="text-white font-medium text-center">Add</Text>
               </TouchableOpacity>
