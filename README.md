@@ -1,4 +1,9 @@
-# ![Logo](mobile/assets/logo-removebg.png)otion
+<p style="display: flex; align-items: center;">
+  <img src="mobile/assets/logo-removebg.png" alt="Logo" width="25" height="25" style="position: relative;"/>
+  <span style="font-size: 100px;">otion</span>
+</p>
+
+
 
 ![GitHub stars](https://img.shields.io/github/stars/your-username/your-repo)
 ![GitHub issues](https://img.shields.io/github/issues/your-username/your-repo)
