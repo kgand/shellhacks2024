@@ -1,8 +1,8 @@
 from flask import Flask, jsonify, request
-from image_processing import extract_png_text
+from image_processing import extract_png_text, extract_png_text_live
 from sentiment_processing import get_likely_class_from_notes, get_likely_class_from_sentence, get_topics_gpt
-# from database_actions import get_classes, upload_note
 from mongo_actions import get_classes, upload_note, create_user, add_class, grab_notes, find_notes_with_topics
+
 app = Flask(__name__)
 
 
@@ -51,7 +51,7 @@ def query():
     likely_class = get_likely_class_from_sentence(text, user_classes)
     
     topics = get_topics_gpt(text, likely_class)
-
+    print(topics)
     topics = topics.split(", ")
 
     results = find_notes_with_topics(user_id, likely_class, topics)
@@ -104,7 +104,10 @@ def ar_video_request():
     user_id = data["userId"]
     image_data = data["image"]
 
-    text = extract_png_text(image_data)
+    # text = extract_png_text(image_data)
+    # return jsonify({"text": text})
+
+    text = extract_png_text_live(image_data)
 
     likely_class = get_likely_class_from_sentence(text)
 

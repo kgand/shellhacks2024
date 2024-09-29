@@ -119,6 +119,8 @@ def find_notes_with_topics(userID: str, class_name: str, topics: list):
     matched_notes = []
     class_data = user_classes[class_name]
 
+    last_image_data = "" # for edgecases
+
     # Loop through notes in the specified class and find overlapping topics
     for note in class_data.get("notes", []):
         note_topics = note.get("topics", [])
@@ -128,6 +130,11 @@ def find_notes_with_topics(userID: str, class_name: str, topics: list):
             matched_notes.append({
                 "image": image
             })
+        last_image_data = note.get("image")
+
+    if(len(matched_notes) == 0):
+        matched_notes = [last_image_data]
+        print("No topics found")
 
     return {"matched_notes": matched_notes}
 
