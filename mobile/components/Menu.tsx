@@ -19,6 +19,7 @@ import ARCamera from './ARCamera';
 import { auth } from '@/configs/firebase';
 import { appSignOut } from '@/utils/auth';
 import { useNavigation } from '@react-navigation/native';
+import CameraModal from './camera/CameraModal';
 
 interface Subject {
   id: string;
@@ -302,14 +303,7 @@ const Menu: React.FC = () => {
         userId={userId}
       />
 
-      <Modal
-        visible={isCameraModalVisible}
-        animationType="slide"
-        onRequestClose={() => setIsCameraModalVisible(false)}
-        transparent={false}
-      >
-        <ARCamera onClose={() => setIsCameraModalVisible(false)} />
-      </Modal>
+      <CameraModal />
 
       {isLoading && (
         <View style={tw`absolute inset-0 bg-black bg-opacity-50 justify-center items-center z-30`}>
