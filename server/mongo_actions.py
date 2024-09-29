@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from datetime import datetime
 
 # Initialize MongoDB client and define the database and collection
-client = MongoClient("mongodb+srv://Cluster41977:U2hydm16dU5r@cluster41977.ugaq7.mongodb.net/test?retryWrites=true&w=majority")
+client = MongoClient("API STRING")
 db = client['noted']
 
 def create_user(userID: str):
@@ -63,7 +63,7 @@ def add_class(userID, class_name):
     # Add the new class to the user's document
     users_collection.update_one(
         {"userID": userID},
-        {"$set": {f"classes.{class_name}": {"notes": []}}}
+        {"$set": {f"classes.{class_name}": {"notes": [], "all_topics" : []}}}
     )
 
     return {"message": f"Class {class_name} created for User ID: {userID}"}
@@ -84,12 +84,20 @@ def upload_note(userID: str, class_name: str, img_data: str, topics: list):
         "topics": topics
     }
 
-    if user_class:
+    total_notes = get_topic_array(userID, class_name)
+    total_notes = update_topic_array(total_notes, topics)
+
+    if user_class:  
         # If the class exists, append the new note to the class's notes array
         users_collection.update_one(
             {"userID": userID, f"classes.{class_name}": {"$exists": True}},
             {"$push": {f"classes.{class_name}.notes": new_note}}
         )
+        users_collection.update_one(
+            {"userID": userID, f"classes.{class_name}": {"$exists": True}},
+            {"$set": {f"classes.{class_name}.all_topics": total_notes}}
+        )
+
         print(f"Note uploaded for User ID: {userID}, Class: {class_name}")
     else:
         # If the class doesn't exist, create the class with the new note
@@ -101,7 +109,7 @@ def upload_note(userID: str, class_name: str, img_data: str, topics: list):
         
         print(f"New class created, and note uploaded for User ID: {userID}, Class: {class_name}")
 
-def find_notes_with_topics(userID: str, class_name: str, topics: list):
+def find_notes_with_topics(userID: str, class_name: str, topics: list, limit: int):
     if not userID or not class_name or not topics:
         return {"error": "userID, class_name, and topics are required"}
 
@@ -119,15 +127,24 @@ def find_notes_with_topics(userID: str, class_name: str, topics: list):
     matched_notes = []
     class_data = user_classes[class_name]
 
+    last_image_data = "" # for edgecases
+
     # Loop through notes in the specified class and find overlapping topics
     for note in class_data.get("notes", []):
         note_topics = note.get("topics", [])
         # Check if there's any overlap between the note's topics and the input topics
         if any(topic in topics for topic in note_topics):
             image = note.get("image")
-            matched_notes.append({
-                "image": image
-            })
+            matched_notes.append(
+               image
+            )
+            if(len(matched_notes) == limit):
+                break
+        last_image_data = note.get("image")
+
+    if(len(matched_notes) == 0):
+        matched_notes = [last_image_data]
+        print("No topics found")
 
     return {"matched_notes": matched_notes}
 
@@ -145,12 +162,20 @@ def grab_notes(userID: str, class_name: str):
         notes_array = list(user_doc["classes"][class_name]["notes"])
         for n in notes_array:
             img_data = n["image"]
-            print(img_data)
             result.append(img_data)
     else:
         print("No classes found for User ID:", userID)
 
     return result
+
+def update_topic_array(old_array, new_topics):
+    return list(set(old_array).union(set(new_topics)))
+
+def get_topic_array(userID: str, class_name: str):
+    users_collection = db['users']
+    user_doc = users_collection.find_one({"userID": userID})
+    return user_doc["classes"][class_name]["all_topics"]
+    
 '''
 if __name__ == "__main__":
     user_id = "user127"
