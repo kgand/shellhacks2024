@@ -1,10 +1,15 @@
 import { Modal, SafeAreaView, View } from "react-native";
 import ARCamera from "./ARCamera";
 
-export default function CameraModal() {
+interface Props {
+    visible: boolean,
+    onClose: () => void
+}
+
+export default function CameraModal({visible, onClose}: Props) {
   return (
-    <Modal visible={true} animationType="slide">
-        <ARCamera />
+    <Modal visible={visible} animationType="slide">
+        <ARCamera onClose={onClose} />
     </Modal>
   );
 }

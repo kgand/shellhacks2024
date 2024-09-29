@@ -6,13 +6,19 @@ import {
   useCameraPermissions,
 } from "expo-camera";
 import { useEffect, useRef, useState } from "react";
-import { Button, Text, TouchableOpacity, View } from "react-native";
+import { Button, Image, Text, TouchableOpacity, View } from "react-native";
 import { Accelerometer } from "expo-sensors";
 import { Subscription } from "expo-sensors/build/Pedometer";
 import { returnNotes } from "@/utils/inference";
 import { auth } from "@/configs/firebase";
+import { Ionicons } from "@expo/vector-icons";
+import ScanningAnimation from "./ScanningAnimation";
 
-export default function ARCamera() {
+interface Props {
+  onClose: () => void;
+}
+
+export default function ARCamera({ onClose }: Props) {
   const cameraRef = useRef<CameraView | null>(null);
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
@@ -22,13 +28,13 @@ export default function ARCamera() {
   const [isTakingPicture, setIsTakingPicture] = useState<boolean>(false);
   const [fetching, setFetching] = useState<boolean>(false);
   const [canTakePicture, setCanTakePicture] = useState<boolean>(true); // New state to control picture-taking
-  // const [responseImage, setResponseImage] = useState<string | null>(null);
+  const [responseImage, setResponseImage] = useState<string | null>(null);
 
   const [counter, setCounter] = useState<number>(0);
 
   Accelerometer.setUpdateInterval(500);
 
-  const threshold = 0.1;
+  const threshold = 0.25;
 
   const [{ x, y, z }, setData] = useState({
     x: 0,
@@ -58,8 +64,7 @@ export default function ARCamera() {
 
     if (overall < threshold) {
       setSteady(true);
-      setCounter((n) => n + 1);
-
+      if (!responseImage) setCounter((n) => n + 1);
       if (!fetching) {
         setCanTakePicture(true);
       }
@@ -67,6 +72,7 @@ export default function ARCamera() {
       setSteady(false);
       setPic(null);
       setCounter(0);
+      setResponseImage(null);
     }
 
     console.log(`${x}, ${y}, ${z}`);
@@ -76,7 +82,12 @@ export default function ARCamera() {
   useEffect(() => {
     if (counter < 8) {
       console.log("Keep holding steady to take pics");
-    } else if (counter >= 8 && !fetching && !isTakingPicture && canTakePicture) {
+    } else if (
+      counter >= 8 &&
+      !fetching &&
+      !isTakingPicture &&
+      canTakePicture
+    ) {
       takePicture();
     }
   }, [counter, fetching, isTakingPicture]);
@@ -116,7 +127,11 @@ export default function ARCamera() {
     console.log("FETCHING!");
 
     const result = await returnNotes(pic.base64, auth.currentUser.uid);
+
     console.log(result);
+
+    setResponseImage(result["matched_notes"][0]);
+
     setFetching(false);
     setCounter(0);
     setPic(null);
@@ -160,9 +175,31 @@ export default function ARCamera() {
         ref={cameraRef}
         facing={facing}
       >
-        <View className="bg-gray-200 bg-opacity-10">
-          <Text>{steady ? Math.floor(counter / 2) : "Camera is moving"}</Text>
+        <TouchableOpacity
+          className="p-2 absolute top-10 left-10 bg-neutral-700 rounded-full"
+          onPress={onClose}
+        >
+          <Ionicons size={40} color="white" name="chevron-back-outline" />
+        </TouchableOpacity>
+
+        <View className="absolute w-[50%] h-[50%] bottom-2 right-2 rounded-xl">
+          {responseImage ? (
+            <Image
+              className="flex-1 w-full bg-contain rounded-xl"
+              source={{ uri: `data:image/png;base64,${responseImage}` }}
+            />
+          ) : (
+            <></>
+          )}
         </View>
+
+        {steady ? (
+          !responseImage && <ScanningAnimation />
+        ) : (
+          <View className="bg-black/20 py-3 px-5 rounded-3xl bg-opacity-50">
+            <Text className="text-white">Stay steady to scan</Text>
+          </View>
+        )}
       </CameraView>
     </View>
   );
