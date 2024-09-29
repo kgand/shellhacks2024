@@ -218,7 +218,7 @@ const Menu: React.FC = () => {
           <Text style={tw`text-2xl mt-2 font-bold text-white`}>otion</Text>
         </View>
         <TouchableOpacity
-          style={tw`flex-row items-center bg-neutral-800 rounded-full px-4 py-2`}
+          style={tw`flex-row items-center bg-red-500 rounded-full px-4 py-2`}
           onPress={handleSignOut}
         >
           <Text style={tw`text-white text-sm mr-2`}>{auth.currentUser?.email}</Text>
@@ -227,7 +227,7 @@ const Menu: React.FC = () => {
       </View>
 
       <View style={tw`px-6 py-2 bg-neutral-800 z-20`}>
-        <View style={tw`flex-row items-center bg-neutral-700 rounded-lg px-4`}>
+        <View style={tw`flex-row items-center bg-neutral-700 rounded-lg px-2 pb-1`}>
           <TextInput
             style={tw`flex-1 py-3 text-white text-lg`}
             placeholder="Ask a question based on your notes"
@@ -236,6 +236,7 @@ const Menu: React.FC = () => {
             onChangeText={setQueryInput}
             onSubmitEditing={handleQuery}
             returnKeyType="send"
+            textAlignVertical="center"
           />
           <TouchableOpacity onPress={handleQuery}>
             <Ionicons name="send" size={24} color="white" />
@@ -280,19 +281,19 @@ const Menu: React.FC = () => {
 
       {!selectedSubject && (
         <TouchableOpacity
-          style={tw`absolute bottom-20 right-10 bg-indigo-600 p-4 rounded-full shadow-lg`}
+          style={tw`absolute bottom-20 right-10 bg-indigo-600 p-6 rounded-full shadow-lg`}
           onPress={handleCreateNewNote}
         >
-          <AntDesign name="plus" size={28} color="white" />
+          <AntDesign name="plus" size={32} color="white" />
         </TouchableOpacity>
       )}
 
       {!selectedSubject && (
         <TouchableOpacity
-          style={tw`absolute bottom-20 left-10 bg-indigo-600 p-4 rounded-full shadow-lg`}
+          style={tw`absolute bottom-20 left-10 bg-indigo-600 p-6 rounded-full shadow-lg`}
           onPress={handleOpenCamera}
         >
-          <Ionicons name="camera" size={28} color="white" />
+          <Ionicons name="camera" size={32} color="white" />
         </TouchableOpacity>
       )}
 

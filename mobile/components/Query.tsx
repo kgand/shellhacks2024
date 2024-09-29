@@ -32,7 +32,7 @@ const Query: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId: userId, text: queryInput }),
+        body: JSON.stringify({ userId: userId, text: queryInput, limit: 2}),
       });
 
       if (!response.ok) {
@@ -77,7 +77,7 @@ const Query: React.FC = () => {
         <Text style={tw`ml-4 text-2xl font-bold text-white`}>Query Notes</Text>
       </View>
       <View style={tw`px-6 py-2 bg-neutral-800`}>
-        <View style={tw`flex-row items-center bg-neutral-700 rounded-lg px-4`}>
+        <View style={tw`flex-row items-center bg-neutral-700 rounded-lg px-4 pb-1`}>
           <TextInput
             style={tw`flex-1 py-3 text-white text-lg`}
             placeholder="Ask a question based on your notes"

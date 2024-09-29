@@ -49,7 +49,7 @@ const QueryResults: React.FC = () => {
           <Text style={tw`text-2xl mt-2 font-bold text-white`}>otion</Text>
         </View>
         <TouchableOpacity
-          style={tw`flex-row items-center bg-neutral-800 rounded-full px-4 py-2`}
+          style={tw`flex-row items-center bg-red-500 rounded-full px-4 py-2`}
           onPress={async () => {
             await appSignOut();
           }}
@@ -62,7 +62,7 @@ const QueryResults: React.FC = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#ffffff" />
         </TouchableOpacity>
-        <Text style={tw`ml-4 text-2xl font-bold text-white`}>Note Finding LLM Results</Text>
+        <Text style={tw`ml-4 text-2xl font-bold text-white`}>Relevant Notes Found</Text>
       </View>
       <FlatList
         data={matchedNotes.map((base64Image: string, index: number) => ({
