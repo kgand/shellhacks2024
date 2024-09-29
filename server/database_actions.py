@@ -1,7 +1,7 @@
 import firebase_admin
 from firebase_admin import db, firestore
 
-cred_obj = firebase_admin.credentials.Certificate('/Users/alou/shellhacks2024/server/noted-ad0e9-firebase-adminsdk-2q5p8-306421f47f.json')
+cred_obj = firebase_admin.credentials.Certificate('noted-ad0e9-firebase-adminsdk-2q5p8-fe74a4b463.json')
 databaseURL = "https://noteddb.firebaseio.com"
 default_app = firebase_admin.initialize_app(cred_obj, {
     'databaseURL':databaseURL

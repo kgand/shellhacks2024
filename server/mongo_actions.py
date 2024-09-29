@@ -131,6 +131,26 @@ def find_notes_with_topics(userID: str, class_name: str, topics: list):
 
     return {"matched_notes": matched_notes}
 
+
+def grab_notes(userID: str, class_name: str):
+    # Reference to the users collection
+    users_collection = db['users']
+
+    # Query the document for the specific userID
+    user_doc = users_collection.find_one({"userID": userID})
+
+    result = []
+    
+    if user_doc and "classes" in user_doc:
+        notes_array = list(user_doc["classes"][class_name]["notes"])
+        for n in notes_array:
+            img_data = n["image"]
+            print(img_data)
+            result.append(img_data)
+    else:
+        print("No classes found for User ID:", userID)
+
+    return result
 '''
 if __name__ == "__main__":
     user_id = "user127"
