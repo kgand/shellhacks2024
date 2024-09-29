@@ -48,9 +48,15 @@ const Quiz: React.FC = () => {
         userId: auth.currentUser?.uid,
         subject: subjectId
       });
-      
+
       // Access the quiz data from the response
       const quizData = response.data;
+      console.log('Quiz data:', JSON.stringify(quizData, null, 2));
+
+      if (quizData.error) {
+        throw new Error(quizData.error);
+      }
+
       setQuestions(quizData.questions);
     } catch (error) {
       console.error('Error fetching questions:', error);
@@ -59,6 +65,7 @@ const Quiz: React.FC = () => {
         text1: 'Error',
         text2: 'Failed to load quiz questions',
       });
+      navigation.goBack(); // Navigate back to the menu
     } finally {
       setIsLoading(false);
     }
