@@ -116,8 +116,8 @@ Describe here how to use the application. You can provide example commands, scre
 
 ## 📞 Contact
 
-- Alexander Lou: 
-- Alexander Wang: 
+- Alexander Lou: https://www.linkedin.com/in/alexander-lou-uf/
+- Alexander Wang: https://www.linkedin.com/in/alexanderwangy/
 - Hugo Liu: https://www.linkedin.com/in/hugo-liu-dolphin/
 - Kovidh Gandreti: https://www.linkedin.com/in/kovidhgandreti/
 
