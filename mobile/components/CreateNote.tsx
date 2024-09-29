@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Modal,
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
@@ -12,14 +11,8 @@ import Toast from 'react-native-toast-message';
 import tw from 'twrnc';
 import { captureRef } from 'react-native-view-shot';
 import { Ionicons } from '@expo/vector-icons';
-
-interface CreateNoteModalProps {
-  isVisible: boolean;
-  onClose: () => void;
-  subjectId: string | null;
-  onNoteCreated: () => void;
-  userId: string | undefined; // Add userId to props
-}
+import { useNavigation } from '@react-navigation/native';
+import { auth } from '@/configs/firebase';
 
 interface SketchPath {
   path: any;
@@ -28,34 +21,14 @@ interface SketchPath {
 }
 
 const colorOptions = [
-  '#000000', // Black
-  '#FFFFFF', // White (Eraser)
-  '#FF0000', // Red
-  '#00FF00', // Green
-  '#0000FF', // Blue
-  '#FFFF00', // Yellow
-  '#FF00FF', // Magenta
-  '#00FFFF', // Cyan
-  '#FFA500', // Orange
-  '#800080', // Purple
-  '#FFC0CB', // Pink
-  '#A52A2A', // Brown
-  '#808080', // Gray
-  '#FFD700', // Gold
-  '#ADFF2F', // GreenYellow
-  '#8B4513', // SaddleBrown
-  '#4B0082', // Indigo
-  '#FF4500', // OrangeRed
-  '#00CED1', // DarkTurquoise
-  '#FF1493', // DeepPink
+  '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF',
+  '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080',
+  '#FFC0CB', '#A52A2A', '#808080', '#FFD700', '#ADFF2F',
+  '#8B4513', '#4B0082', '#FF4500', '#00CED1', '#FF1493',
 ];
-const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
-  isVisible,
-  onClose,
-  subjectId,
-  onNoteCreated,
-  userId, // Destructure userId from props
-}) => {
+
+
+const CreateNote: React.FC = () => {
   const [paths, setPaths] = useState<SketchPath[]>([]);
   const [redoPaths, setRedoPaths] = useState<SketchPath[]>([]);
   const [color, setColor] = useState<string>('#000000');
@@ -63,6 +36,8 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const canvasRef = useRef(null);
+  const navigation = useNavigation();
+  const userId = auth.currentUser?.uid;
 
   const handleSubmitSketch = async () => {
     setIsLoading(true);
@@ -70,8 +45,9 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
       const base64Image = await captureRef(canvasRef, {
         format: 'png',
         quality: 1.0,
-        result: 'base64', // Ensure it's returning base64
+        result: 'base64',
       });
+
 
       const response = await fetch('http://10.108.74.57:5000/api/upload', {
         method: 'POST',
@@ -79,8 +55,8 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          image: base64Image, // Sending Base64 image
-          userId, // Use userId here
+          image: base64Image,
+          userId,
         }),
       });
 
@@ -90,11 +66,7 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
           text1: 'Note Saved',
           text2: 'Your note has been saved successfully.',
         });
-
-        onClose();
-        setPaths([]);
-        setRedoPaths([]);
-        onNoteCreated();
+        navigation.goBack();
       } else {
         throw new Error('Network response was not ok');
       }
@@ -109,6 +81,7 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
       setIsLoading(false);
     }
   };
+
   const onDrawingStart = useCallback(
     (touchInfo: any) => {
       setPaths((currentPaths) => {
@@ -128,6 +101,7 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
     [color, strokeWidth]
   );
 
+
   const onDrawingActive = useCallback(
     (touchInfo: any) => {
       setPaths((currentPaths) => {
@@ -144,6 +118,7 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
     []
   );
 
+
   const touchHandler = useTouchHandler(
     {
       onActive: onDrawingActive,
@@ -151,6 +126,7 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
     },
     [onDrawingActive, onDrawingStart]
   );
+
 
   const handleUndo = () => {
     setPaths((currentPaths) => {
@@ -160,6 +136,7 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
       return currentPaths.slice(0, -1);
     });
   };
+
   const handleRedo = () => {
     setRedoPaths((currentRedoPaths) => {
       if (currentRedoPaths.length === 0) return currentRedoPaths;
@@ -175,64 +152,63 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
   };
 
   return (
-    <Modal visible={isVisible} animationType="slide">
-      <View style={tw`flex-1 bg-neutral-900`}>
-        <View style={tw`mt-10 px-4 py-3 bg-neutral-800 flex-row justify-between items-center`}>
-          <TouchableOpacity 
-            onPress={onClose}
-            style={tw`bg-neutral-700 rounded-full p-2`}
-          >
-            <Ionicons name="close" size={24} color="white" />
-          </TouchableOpacity>
-          <Text style={tw`text-xl font-bold text-white`}>New Note</Text>
-          <TouchableOpacity 
-            onPress={handleSubmitSketch}
-            style={tw`bg-blue-500 rounded-full px-4 py-2`}
-          >
-            <Text style={tw`text-white font-semibold`}>Upload</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={tw`flex-row justify-between items-center px-4 py-2 bg-neutral-800`}>
-          <View style={tw`flex-row items-center`}>
-            <TouchableOpacity onPress={handleUndo} style={tw`mr-4 bg-neutral-700 rounded-full p-2`}>
-              <Ionicons name="arrow-undo" size={20} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleRedo} style={tw`mr-6 bg-neutral-700 rounded-full p-2`}>
-              <Ionicons name="arrow-redo" size={20} color="white" />
-            </TouchableOpacity>
-          </View>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
-            contentContainerStyle={tw`flex-row`}
-          >
-            {colorOptions.map((c) => (
-              <TouchableOpacity
-                key={c}
-                style={[
-                  tw`w-8 h-8 rounded-full mx-1`,
-                  { backgroundColor: c },
-                  color === c && tw`border-2 border-white`,
-                  c === '#FFFFFF' && tw`border border-gray-300`, // Add border to white color
-                ]}
-                onPress={() => handleColorSelect(c)}
-              />
-            ))}
-          </ScrollView>
-        </View>
-        <Canvas ref={canvasRef} style={tw`flex-1 bg-white`} onTouch={touchHandler}>
-          {paths.map((path, index) => (
-            <SkiaPath key={index} path={path.path} color={path.color} style="stroke" strokeWidth={path.strokeWidth} />
-          ))}
-        </Canvas>
-        {isLoading && (
-          <View style={tw`absolute inset-0 bg-black bg-opacity-50 justify-center items-center`}>
-            <ActivityIndicator size="large" color="#ffffff" />
-          </View>
-        )}
+    <View style={tw`flex-1 bg-neutral-900`}>
+      <View style={tw`mt-10 px-4 py-3 bg-neutral-800 flex-row justify-between items-center`}>
+        <TouchableOpacity 
+          onPress={() => navigation.goBack()}
+          style={tw`bg-neutral-700 rounded-full p-2`}
+        >
+          <Ionicons name="close" size={24} color="white" />
+        </TouchableOpacity>
+        <Text style={tw`text-xl font-bold text-white`}>New Note</Text>
+        <TouchableOpacity 
+          onPress={handleSubmitSketch}
+          style={tw`bg-blue-500 rounded-full px-4 py-2`}
+        >
+          <Text style={tw`text-white font-semibold`}>Upload</Text>
+        </TouchableOpacity>
       </View>
-    </Modal>
+      <View style={tw`flex-row justify-between items-center px-4 py-2 bg-neutral-800`}>
+        <View style={tw`flex-row items-center`}>
+          <TouchableOpacity onPress={handleUndo} style={tw`mr-4 bg-neutral-700 rounded-full p-2`}>
+            <Ionicons name="arrow-undo" size={20} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleRedo} style={tw`mr-6 bg-neutral-700 rounded-full p-2`}>
+            <Ionicons name="arrow-redo" size={20} color="white" />
+          </TouchableOpacity>
+        </View>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={tw`flex-row`}
+        >
+          {colorOptions.map((c) => (
+            <TouchableOpacity
+              key={c}
+              style={[
+                tw`w-8 h-8 rounded-full mx-1`,
+                { backgroundColor: c },
+                color === c && tw`border-2 border-white`,
+                c === '#FFFFFF' && tw`border border-gray-300`,
+              ]}
+              onPress={() => handleColorSelect(c)}
+            />
+          ))}
+        </ScrollView>
+      </View>
+      <Canvas ref={canvasRef} style={tw`flex-1 bg-white`} onTouch={touchHandler}>
+        {paths.map((path, index) => (
+          <SkiaPath key={index} path={path.path} color={path.color} style="stroke" strokeWidth={path.strokeWidth} />
+        ))}
+      </Canvas>
+      {isLoading && (
+        <View style={tw`absolute inset-0 bg-black bg-opacity-50 justify-center items-center`}>
+          <ActivityIndicator size="large" color="#ffffff" />
+        </View>
+      )}
+    </View>
   );
 };
 
-export default CreateNoteModal;
+
+export default CreateNote;
