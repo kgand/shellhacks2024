@@ -1,9 +1,7 @@
 <p style="display: flex; align-items: center;">
-  <img src="mobile/assets/logo-removebg.png" alt="Logo" width="25" height="25" style="position: relative;"/>
-  <span style="font-size: 100px;">otion</span>
+  <img src="mobile/assets/logo-removebg.png" alt="Logo" width="25" height="27" style="margin-right: 10px;"/>
+  <span style="font-size: 2.5em; font-weight: bold;">otion</span>
 </p>
-
-
 
 
 ## 🚀 Project Overview
@@ -35,26 +33,77 @@ This project uses:
 - **APIs Used**: 
   - Google Vision API, ChatGPT API
 
-## 📦 Installation
+## 📦 Installation Guide
 
-To get a copy of this project up and running locally, follow these steps:
+Follow these steps to set up the project locally.
 
-1. Clone the repository:
-    ```bash
-    git clone https://github.com/your-username/your-repo.git
-    ```
-2. Change to the project directory:
-    ```bash
-    cd your-repo
-    ```
-3. Install dependencies:
-    ```bash
-    npm install
-    ```
-4. Start the development server:
-    ```bash
-    npm start
-    ```
+### 1. Clone the Repository
+
+To get a copy of the repository, run the following command:
+
+```bash
+git clone https://github.com/kgand/shellhacks2024.git
+```
+### 2. Navigate to the Project Directory
+
+Change into the project's root directory:
+```bash
+cd shellhacks2024
+```
+## 🖥️ Frontend Setup
+
+### 1. Navigate to the `mobile` Directory
+
+Move into the front-end directory:
+```bash
+cd mobile
+```
+
+### 2. Install Dependencies
+
+Install all required dependencies for the frontend:
+```bash
+npm install
+```
+
+### 3. Start the Development Server
+
+Run the development server:
+```bash
+npm start
+```
+
+### 4. Begin Development
+
+You can now begin developing the frontend.
+
+## 🔙 Backend Setup
+
+### 1. Navigate to the `backend` Directory
+
+Move to the backend folder:
+```bash
+cd backend
+```
+
+### 2. Install Dependencies
+
+Install the necessary Python packages:
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Start the Backend Server
+
+Run the backend application:
+```bash
+python app.py
+```
+
+### 4. Backend is Ready
+
+The backend server should now be running, and you can begin backend development.
 
 ## 📝 Usage
 
@@ -70,7 +119,7 @@ Describe here how to use the application. You can provide example commands, scre
 - Alexander Lou: 
 - Alexander Wang: 
 - Hugo Liu: https://www.linkedin.com/in/hugo-liu-dolphin/
-- Khovid Gandreti: 
+- Kovidh Gandreti: https://www.linkedin.com/in/kovidhgandreti/
 
 ---
 
