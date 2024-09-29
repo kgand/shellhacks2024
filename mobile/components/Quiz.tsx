@@ -48,7 +48,10 @@ const Quiz: React.FC = () => {
         userId: auth.currentUser?.uid,
         subject: subjectId
       });
-      setQuestions(response.data);
+      
+      // Access the quiz data from the response
+      const quizData = response.data;
+      setQuestions(quizData.questions);
     } catch (error) {
       console.error('Error fetching questions:', error);
       Toast.show({
@@ -79,12 +82,17 @@ const Quiz: React.FC = () => {
 
   const renderQuestion = () => {
     const question = questions[currentQuestionIndex];
-    if (!question) return null;
+    if (!question) {
+      console.log('No question available at index:', currentQuestionIndex);
+      return null;
+    }
+
+    console.log('Rendering question:', JSON.stringify(question, null, 2));
 
     return (
       <View style={tw`p-4`}>
         <Text style={tw`text-white text-xl font-bold mb-6`}>{question.text}</Text>
-        {Object.entries(question.options).map(([key, value]) => (
+        {question.options && Object.entries(question.options).map(([key, value]) => (
           <TouchableOpacity
             key={key}
             style={tw`bg-neutral-700 px-4 py-3 rounded-lg mb-3 ${selectedAnswer === key ? 'bg-indigo-600' : ''}`}
