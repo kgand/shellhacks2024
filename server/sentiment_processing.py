@@ -1,4 +1,8 @@
 from sentence_transformers import SentenceTransformer
+from typing import Dict, List, Union
+from pydantic import BaseModel, Field, ValidationError
+import json
+import random
 # functions for processing sentiments from sentences
 
 
@@ -27,7 +31,7 @@ def compare_embedding(embedding_1, embedding_2):
     return similarities[0][0]
 
 import openai
-API_KEY = "NONE"
+API_KEY = "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"
 
 import requests
 def get_class_gpt(s: str, instruction: str) -> str:
@@ -126,53 +130,81 @@ ONLY Return 1 to 5 topics. ONLY include the comma separated list. The topics sho
         print("Error:", response.status_code, response.text)
     return "ERROR: Sentiment_processing gpt"
 
-from pydantic import BaseModel, Field
-from typing import List, Dict
+class QuestionOptions(BaseModel):
+    a: str
+    b: str
+    c: str
+    d: str
 
-class QuizOption(BaseModel):
+class Question(BaseModel):
+    id: str
     text: str
-    isCorrect: bool
-    counterArgument: str = ""
+    options: QuestionOptions
+    correctAnswer: str
 
-class QuizQuestion(BaseModel):
-    question: str
-    explanation: str
-    answers: List[QuizOption]
+class Quiz(BaseModel):
+    questions: List[Question]
 
-class QuizResponse(BaseModel):
-    questions: List[QuizQuestion]
-def generate_quiz_gpt(topic_context: list, subject: str) -> str:
-    topic_context = ", ".join(topic_context)
+# Function to limit topics randomly
+def limit_topics_random(topics: Union[str, List[str]], min_tokens: int = 800, max_tokens: int = 1000) -> str:
+    """ Randomly select topics to fit within the token limit. """
+    # Ensure topics is a list
+    if isinstance(topics, str):
+        topics = [topics]
+        
+    random.shuffle(topics)  # Shuffle the topics randomly
+    selected_topics = []
+    total_tokens = 0
 
-    instruction_string = f"""
-    You are an expert teacher, skilled in producing detailed student assessments that effectively demonstrate their learning. Your task is to create a multiple-choice quiz based on the following notes for students learning about {subject}. Include questions that test comprehension and application of the material.
+    for topic in topics:
+        topic_tokens = len(tokenize(topic))
+        if total_tokens + topic_tokens > max_tokens:
+            break
+        selected_topics.append(topic)
+        total_tokens += topic_tokens
 
-    Topics:
-    {topic_context}
+        if total_tokens >= min_tokens:  # Stop if we reach at least the minimum token count
+            break
 
-    Create 5 multiple-choice questions based on these topics. Each question should have 4 options (a, b, c, d) with only one correct answer. Format your response as a JSON array of objects, where each object represents a question and follows this structure:
+    return ', '.join(selected_topics)
 
-    {{
-      "id": "1",
-      "text": "What is...",
-      "options": {{
-        "a": "Option A",
-        "b": "Option B",
-        "c": "Option C",
-        "d": "Option D"
-      }},
-      "correctAnswer": "a"
-    }}
+def tokenize(text: str) -> List[str]:
+    """ Tokenize the input text into words. """
+    return text.split()  # Simple whitespace tokenizer, can be enhanced
 
-    Ensure that the "id" field is a string representing the question number (1-5), and the "correctAnswer" field contains the letter of the correct option.
-    """
-
+def generate_quiz_gpt(topics: List[str], subject: str) -> List[Dict]:
+    # Limit the topics to between 800 and 1000 tokens
+    limited_topics = limit_topics_random(topics, min_tokens=800, max_tokens=1000)
+    
     endpoint = 'https://api.openai.com/v1/chat/completions'
-
     headers = {
         'Authorization': f'Bearer {API_KEY}',
         'Content-Type': 'application/json'
     }
+
+    # Construct the instruction using limited topics
+    instruction_string = f"""
+    You are an expert teacher, skilled in producing detailed student assessments that effectively demonstrate their learning. Your task is to create a multiple-choice quiz based on the following topics for students learning about {subject}. Include questions that test comprehension and application of the material.
+
+    Topics:
+    {limited_topics}
+
+    Create 5 multiple-choice questions based on these topics. Each question should have 4 options (a, b, c, d) with only one correct answer, and specify which answer is correct. Return the output in JSON format, like this:
+    [
+        {{
+            "id": "1",
+            "text": "Question text...",
+            "options": {{
+                "a": "Option A",
+                "b": "Option B",
+                "c": "Option C",
+                "d": "Option D"
+            }},
+            "correctAnswer": "a"
+        }},
+        ...
+    ]
+    """
 
     messages = [
         {"role": "system", "content": "You are a helpful assistant that generates quizzes."},
@@ -181,22 +213,23 @@ def generate_quiz_gpt(topic_context: list, subject: str) -> str:
 
     data = {
         "model": "gpt-3.5-turbo",
-        "messages": messages
+        "messages": messages,
     }
 
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant that generates quizzes."},
-            {"role": "user", "content": instruction_string}
-        ]
-    )
+    response = requests.post(endpoint, headers=headers, json=data)
 
-    # Parse the JSON response
-    quiz_data = json.loads(response.choices[0].message.content)
-
-    # Validate the structure using Pydantic
-    validated_quiz = QuizResponse(**quiz_data)
-
-    # Convert back to dictionary for JSON serialization
-    return validated_quiz.dict()
+    if response.status_code == 200:
+        result = response.json()
+        quiz_text = result['choices'][0]['message']['content']
+        try:
+            # Parse the response to a list of questions using pydantic for validation
+            questions_data = json.loads(quiz_text)
+            validated_questions = [Question(**q) for q in questions_data]
+            quiz = Quiz(questions=validated_questions)
+            return quiz.dict()
+        except (json.JSONDecodeError, ValidationError) as e:
+            print("Error in parsing or validating response:", e)
+            return {"error": "Error in generating quiz format"}
+    else:
+        print("Error:", response.status_code, response.text)
+        return {"error": "Error in generating quiz"}

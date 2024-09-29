@@ -114,16 +114,20 @@ def ar_video_recognition():
     results = find_notes_with_topics(user_id, likely_class, topics, 1)
     return jsonify(results)
 
-
 @app.route('/api/quiz', methods=['POST'])
-def generate_quiz():
+def generate_quiz_route():
     data = request.get_json()
     user_id = data["userId"]
     subject = data["subject"]
-    notes = grab_notes(user_id, subject)
-    combined_notes = " ".join(notes)
-    quiz_data = generate_quiz_gpt(combined_notes, subject)
-    return jsonify(quiz_data)
+    
+    # Get topics related to the subject
+    topics = get_topic_array(user_id, subject)
+    combined_topics = ", ".join(topics)
+    
+    # Generate quiz based on topics
+    quiz = generate_quiz_gpt(combined_topics, subject)
+    print(quiz)
+    return quiz
 
     
 if __name__ == '__main__':
