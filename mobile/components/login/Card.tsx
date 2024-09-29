@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { loginWithEmailAndPassword } from "@/utils/auth";
 import { router } from "expo-router";
 import Toast from "react-native-toast-message";
 import AnimatedBackground from '../AnimatedBackground';
+import logo from '@/assets/logo.png';
 
 const Card: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -23,6 +24,7 @@ const Card: React.FC = () => {
     <View style={styles.container}>
       <AnimatedBackground />
       <View style={styles.card}>
+        <Image source={logo} style={styles.logo} />
         <Text style={styles.title}>Log In</Text>
         <View style={styles.inputContainer}>
           <TextInput
@@ -71,6 +73,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderColor: 'rgba(255,255,255,0.1)',
     borderWidth: 1,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    marginBottom: 20,
   },
   title: {
     fontSize: 32,
