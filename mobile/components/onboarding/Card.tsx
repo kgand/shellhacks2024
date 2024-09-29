@@ -121,12 +121,13 @@ export default function Card() {
         text1: "Missing id or classes"
       })
 
+
       return;
     }
 
     console.log("Submitting classes: ", classes);
 
-    await addClasses({userId: auth.currentUser?.uid, classes});
+    await addClasses({userId: auth.currentUser?.uid, classes: [...classes, ...selectedItems.map(item => item.value)]});
 
     router.push('/(pages)/home');
   }
@@ -161,6 +162,7 @@ export default function Card() {
         return [...prevSelected, { ...item, active: true }];
       }
     });
+
 
     console.log(selectedItems);
   };
