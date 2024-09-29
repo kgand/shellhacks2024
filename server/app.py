@@ -1,7 +1,8 @@
 from flask import Flask, jsonify, request
 from image_processing import extract_png_text, extract_png_text_live
-from sentiment_processing import get_likely_class_from_notes, get_likely_class_from_sentence, get_topics_gpt
-from mongo_actions import get_classes, upload_note, create_user, add_class, grab_notes, find_notes_with_topics
+from sentiment_processing import get_likely_class_from_notes, get_likely_class_from_sentence, get_topics_gpt, generate_quiz_gpt
+from mongo_actions import get_classes, upload_note, create_user, add_class, grab_notes, find_notes_with_topics, get_topic_array
+import json
 
 app = Flask(__name__)
 
@@ -52,7 +53,8 @@ def query():
 
     # Using the Text, process into a class, and topics
     likely_class = get_likely_class_from_sentence(text, user_classes)
-    topics = get_topics_gpt(text, likely_class)
+    all_topics = get_topic_array(user_id, likely_class)
+    topics = get_topics_gpt(text, likely_class, all_topics)
     topics = topics.split(", ")
 
     results = find_notes_with_topics(user_id, likely_class, topics, limit)
@@ -99,26 +101,29 @@ def get_notes():
     return jsonify({"note_list": result})
 
 @app.route("/api/ar_video_recognition", methods=['post'])
-def ar_video_request():
+def ar_video_recognition():   
     data = request.get_json()
     user_id = data["userId"]
     image_data = data["image"]
-
-    # text = extract_png_text(image_data)
-    # return jsonify({"text": text})
-
-    text = extract_png_text_live(image_data)
-
-    likely_class = get_likely_class_from_sentence(text)
-
-    topics = get_topics_gpt(text, likely_class)
-
+    classes = get_classes(user_id)
+    text = extract_png_text_live(image_data, classes)
+    likely_class = get_likely_class_from_sentence(text, classes)
+    all_topics = get_topic_array(user_id, likely_class)
+    topics = get_topics_gpt(text, likely_class, all_topics)
     topics = topics.split(", ")
-
-    results = find_notes_with_topics(user_id, likely_class, topics)
-
+    results = find_notes_with_topics(user_id, likely_class, topics, 1)
     return jsonify(results)
 
+
+@app.route('/api/quiz', methods=['POST'])
+def generate_quiz():
+    data = request.get_json()
+    user_id = data["userId"]
+    subject = data["subject"]
+    notes = grab_notes(user_id, subject)
+    combined_notes = " ".join(notes)
+    quiz_data = generate_quiz_gpt(combined_notes, subject)
+    return jsonify(quiz_data)
 
     
 if __name__ == '__main__':

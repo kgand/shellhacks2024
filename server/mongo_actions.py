@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from datetime import datetime
 
 # Initialize MongoDB client and define the database and collection
-client = MongoClient("mongodb+srv://Cluster41977:U2hydm16dU5r@cluster41977.ugaq7.mongodb.net/test?retryWrites=true&w=majority")
+client = MongoClient("API STRING")
 db = client['noted']
 
 def create_user(userID: str):
@@ -63,7 +63,7 @@ def add_class(userID, class_name):
     # Add the new class to the user's document
     users_collection.update_one(
         {"userID": userID},
-        {"$set": {f"classes.{class_name}": {"notes": []}}}
+        {"$set": {f"classes.{class_name}": {"notes": [], "all_topics" : []}}}
     )
 
     return {"message": f"Class {class_name} created for User ID: {userID}"}
@@ -84,12 +84,20 @@ def upload_note(userID: str, class_name: str, img_data: str, topics: list):
         "topics": topics
     }
 
-    if user_class:
+    total_notes = get_topic_array(userID, class_name)
+    total_notes = update_topic_array(total_notes, topics)
+
+    if user_class:  
         # If the class exists, append the new note to the class's notes array
         users_collection.update_one(
             {"userID": userID, f"classes.{class_name}": {"$exists": True}},
             {"$push": {f"classes.{class_name}.notes": new_note}}
         )
+        users_collection.update_one(
+            {"userID": userID, f"classes.{class_name}": {"$exists": True}},
+            {"$set": {f"classes.{class_name}.all_topics": total_notes}}
+        )
+
         print(f"Note uploaded for User ID: {userID}, Class: {class_name}")
     else:
         # If the class doesn't exist, create the class with the new note
@@ -159,6 +167,15 @@ def grab_notes(userID: str, class_name: str):
         print("No classes found for User ID:", userID)
 
     return result
+
+def update_topic_array(old_array, new_topics):
+    return list(set(old_array).union(set(new_topics)))
+
+def get_topic_array(userID: str, class_name: str):
+    users_collection = db['users']
+    user_doc = users_collection.find_one({"userID": userID})
+    return user_doc["classes"][class_name]["all_topics"]
+    
 '''
 if __name__ == "__main__":
     user_id = "user127"

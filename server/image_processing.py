@@ -80,4 +80,4 @@ def extract_png_text_live(
 
     # for label in label_response:
     #     label_result.append(label.description)
-    return text_result #, label_result
+    return " ".join(text_result) #, label_result
