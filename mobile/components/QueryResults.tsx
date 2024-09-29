@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { auth } from '@/configs/firebase'; // Ensure this import is correct
 import { appSignOut } from '@/utils/auth';
+import Toast from 'react-native-toast-message';
 
 interface Note {
   id: string;
@@ -21,6 +22,17 @@ const QueryResults: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { matchedNotes } = route.params;
+
+  useEffect(() => {
+    if (!matchedNotes || matchedNotes.length === 0) {
+      Toast.show({
+        type: 'info',
+        text1: 'No Results',
+        text2: 'No matching notes found for your query.',
+      });
+    }
+  }, [matchedNotes]);
+
   const renderNoteItem = ({ item }: { item: Note }) => {
     return (
       <View style={tw`mb-4 bg-neutral-700 rounded-lg shadow-md`}>
@@ -65,7 +77,7 @@ const QueryResults: React.FC = () => {
         <Text style={tw`ml-4 text-2xl font-bold text-white`}>Relevant Notes Found</Text>
       </View>
       <FlatList
-        data={matchedNotes.map((base64Image: string, index: number) => ({
+        data={matchedNotes?.map((base64Image: string, index: number) => ({
           id: `matched-${index}`,
           imageData: base64Image,
         }))}
