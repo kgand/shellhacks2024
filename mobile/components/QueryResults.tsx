@@ -10,6 +10,7 @@ import tw from 'twrnc';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { auth } from '@/configs/firebase'; // Ensure this import is correct
+import { appSignOut } from '@/utils/auth';
 
 interface Note {
   id: string;
@@ -20,7 +21,6 @@ const QueryResults: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { matchedNotes } = route.params;
-
   const renderNoteItem = ({ item }: { item: Note }) => {
     return (
       <View style={tw`mb-4 bg-neutral-700 rounded-lg shadow-md`}>
@@ -50,8 +50,8 @@ const QueryResults: React.FC = () => {
         </View>
         <TouchableOpacity
           style={tw`flex-row items-center bg-neutral-800 rounded-full px-4 py-2`}
-          onPress={() => {
-            // Add your sign-out logic here
+          onPress={async () => {
+            await appSignOut();
           }}
         >
           <Text style={tw`text-white text-sm mr-2`}>{auth.currentUser?.email}</Text>
