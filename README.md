@@ -1,6 +1,6 @@
 # Lotion AI/AR
 
-![Project Banner](https://via.placeholder.com/800x200?text=Project+Banner)
+![Project Banner](/mobile/assets/logo.png)
 
 ![GitHub stars](https://img.shields.io/github/stars/your-username/your-repo)
 ![GitHub issues](https://img.shields.io/github/issues/your-username/your-repo)
