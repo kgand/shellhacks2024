@@ -1,5 +1,4 @@
-# /mobile/assets/logo-removebg.pngotion AI/AR
-
+# ![Logo](mobile/assets/logo-removebg.png)otion
 
 ![GitHub stars](https://img.shields.io/github/stars/your-username/your-repo)
 ![GitHub issues](https://img.shields.io/github/issues/your-username/your-repo)
